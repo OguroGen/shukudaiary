@@ -99,7 +99,7 @@ export default function NewStudentPage() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
       <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-semibold mb-6">Add student</h1>
+        <h1 className="text-2xl font-semibold mb-6">生徒を追加</h1>
 
         {studentCount >= 10 && (
           <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded">
@@ -116,7 +116,7 @@ export default function NewStudentPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="login_id" className="block text-sm font-medium mb-1">
-              Login ID
+              ログインID
             </label>
             <input
               id="login_id"
@@ -132,7 +132,7 @@ export default function NewStudentPage() {
           </div>
           <div>
             <label htmlFor="nickname" className="block text-sm font-medium mb-1">
-              Nickname
+              ニックネーム
             </label>
             <input
               id="nickname"
@@ -148,7 +148,7 @@ export default function NewStudentPage() {
           </div>
           <div>
             <label htmlFor="password" className="block text-sm font-medium mb-1">
-              Initial Password
+              初期パスワード
             </label>
             <input
               id="password"
@@ -168,13 +168,13 @@ export default function NewStudentPage() {
               disabled={loading || studentCount >= 10}
               className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating...' : 'Create'}
+              {loading ? '作成中...' : '作成'}
             </button>
             <Link
               href="/teacher/students"
               className="flex-1 px-6 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 text-center"
             >
-              Cancel
+              キャンセル
             </Link>
           </div>
         </form>

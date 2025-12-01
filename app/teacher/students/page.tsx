@@ -87,7 +87,7 @@ export default function StudentsListPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Loading...</div>
+        <div>読み込み中...</div>
       </div>
     )
   }
@@ -97,17 +97,17 @@ export default function StudentsListPage() {
       <div className="max-w-6xl mx-auto">
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-semibold">Students</h1>
+            <h1 className="text-2xl font-semibold">生徒一覧</h1>
             <Link
               href="/teacher/students/new"
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
-              Add student
+              生徒を追加
             </Link>
           </div>
           <input
             type="text"
-            placeholder="Search by nickname or ID"
+            placeholder="ニックネームまたはIDで検索"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -116,17 +116,17 @@ export default function StudentsListPage() {
 
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
           {filteredStudents.length === 0 ? (
-            <p className="text-gray-600">No students found.</p>
+            <p className="text-gray-600">生徒が見つかりません。</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left p-2">ID</th>
-                    <th className="text-left p-2">Nickname</th>
-                    <th className="text-left p-2">Login ID</th>
-                    <th className="text-left p-2">Last activity</th>
-                    <th className="text-left p-2">Actions</th>
+                    <th className="text-left p-2">ニックネーム</th>
+                    <th className="text-left p-2">ログインID</th>
+                    <th className="text-left p-2">最終活動日</th>
+                    <th className="text-left p-2">操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -137,8 +137,8 @@ export default function StudentsListPage() {
                       <td className="p-2">{student.login_id}</td>
                       <td className="p-2">
                         {student.last_activity
-                          ? new Date(student.last_activity).toLocaleDateString()
-                          : 'Never'}
+                          ? new Date(student.last_activity).toLocaleDateString('ja-JP')
+                          : 'なし'}
                       </td>
                       <td className="p-2">
                         <div className="flex gap-2">
@@ -146,13 +146,13 @@ export default function StudentsListPage() {
                             href={`/teacher/students/${student.id}`}
                             className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
                           >
-                            Details
+                            詳細
                           </Link>
                           <button
                             onClick={() => handleResetPassword(student.id)}
                             className="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm"
                           >
-                            Reset password
+                            パスワードリセット
                           </button>
                         </div>
                       </td>

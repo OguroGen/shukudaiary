@@ -136,7 +136,7 @@ export default function HomeworkQuizPage() {
   if (loading || !homework || questions.length === 0) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Loading...</div>
+        <div>読み込み中...</div>
       </div>
     )
   }
@@ -149,10 +149,10 @@ export default function HomeworkQuizPage() {
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-xl font-semibold">
-              Shukudai #{homework.id.slice(0, 8)}
+              宿題 #{homework.id.slice(0, 8)}
             </h1>
             <div className="text-lg">
-              Question {currentIndex + 1} / {questions.length}
+              問題 {currentIndex + 1} / {questions.length}
             </div>
           </div>
         </div>

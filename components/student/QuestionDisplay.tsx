@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { HomeworkType } from '@/types/homework'
 
 interface QuestionDisplayProps {
@@ -16,7 +17,7 @@ interface QuestionDisplayProps {
   currentAnswer: string
 }
 
-export default function QuestionDisplay({
+function QuestionDisplay({
   type,
   question,
   currentAnswer,
@@ -55,4 +56,6 @@ export default function QuestionDisplay({
     </div>
   )
 }
+
+export default memo(QuestionDisplay)
 

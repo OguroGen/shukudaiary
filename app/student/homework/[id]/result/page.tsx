@@ -61,7 +61,7 @@ export default function HomeworkResultPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Loading...</div>
+        <div>読み込み中...</div>
       </div>
     )
   }
@@ -69,7 +69,7 @@ export default function HomeworkResultPage() {
   if (!homework || !result) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Result not found</div>
+        <div>結果が見つかりません</div>
       </div>
     )
   }
@@ -88,17 +88,17 @@ export default function HomeworkResultPage() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
       <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-semibold mb-6">Shukudai result</h1>
+        <h1 className="text-2xl font-semibold mb-6">宿題の結果</h1>
 
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
           <div className="text-3xl font-semibold text-center">
-            Correct: {result.correct} / {result.total}
+            正解: {result.correct} / {result.total}
           </div>
         </div>
 
         {result.wrongAnswers.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-4">Wrong answers</h2>
+            <h2 className="text-xl font-semibold mb-4">間違えた問題</h2>
             <div className="space-y-2">
               {result.wrongAnswers.map((answer, idx) => (
                 <div
@@ -106,9 +106,9 @@ export default function HomeworkResultPage() {
                   className="p-3 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900"
                 >
                   <div className="text-sm">
-                    <strong>Q{answer.question_index + 1}:</strong>{' '}
-                    {formatQuestion(answer)} → Correct: {answer.correct_answer}{' '}
-                    / You: {answer.student_answer}
+                    <strong>問題{answer.question_index + 1}:</strong>{' '}
+                    {formatQuestion(answer)} → 正答: {answer.correct_answer}{' '}
+                    / あなたの答え: {answer.student_answer}
                   </div>
                 </div>
               ))}
@@ -120,7 +120,7 @@ export default function HomeworkResultPage() {
           href="/student/home"
           className="block w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center"
         >
-          Back to home
+          ホームに戻る
         </Link>
       </div>
     </div>

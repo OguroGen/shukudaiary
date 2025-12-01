@@ -142,7 +142,7 @@ export default function PresetEditPage() {
   if (loadingData) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Loading...</div>
+        <div>読み込み中...</div>
       </div>
     )
   }
@@ -151,7 +151,7 @@ export default function PresetEditPage() {
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
       <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
         <h1 className="text-2xl font-semibold mb-6">
-          {isNew ? 'New preset' : 'Edit preset'}
+          {isNew ? 'プリセットを新規作成' : 'プリセットを編集'}
         </h1>
 
         {isNew && presetCount >= 10 && (
@@ -169,7 +169,7 @@ export default function PresetEditPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="name" className="block text-sm font-medium mb-1">
-              Preset name
+              プリセット名
             </label>
             <input
               id="name"
@@ -186,7 +186,7 @@ export default function PresetEditPage() {
 
           <div>
             <label htmlFor="type" className="block text-sm font-medium mb-1">
-              Type
+              種目
             </label>
             <div className="flex gap-4">
               <label className="flex items-center">
@@ -198,7 +198,7 @@ export default function PresetEditPage() {
                   onChange={(e) => setType(e.target.value as HomeworkType)}
                   className="mr-2"
                 />
-                Multiplication
+                かけ算
               </label>
               <label className="flex items-center">
                 <input
@@ -209,7 +209,7 @@ export default function PresetEditPage() {
                   onChange={(e) => setType(e.target.value as HomeworkType)}
                   className="mr-2"
                 />
-                Division
+                わり算
               </label>
               <label className="flex items-center">
                 <input
@@ -220,7 +220,7 @@ export default function PresetEditPage() {
                   onChange={(e) => setType(e.target.value as HomeworkType)}
                   className="mr-2"
                 />
-                Mitori
+                見取り算
               </label>
             </div>
           </div>
@@ -232,7 +232,7 @@ export default function PresetEditPage() {
                   htmlFor="left_digits"
                   className="block text-sm font-medium mb-1"
                 >
-                  Left digits
+                  左側の桁数
                 </label>
                 <input
                   id="left_digits"
@@ -250,7 +250,7 @@ export default function PresetEditPage() {
                   htmlFor="right_digits"
                   className="block text-sm font-medium mb-1"
                 >
-                  Right digits
+                  右側の桁数
                 </label>
                 <input
                   id="right_digits"
@@ -271,7 +271,7 @@ export default function PresetEditPage() {
           {type === 'mitori' && (
             <div>
               <label htmlFor="rows" className="block text-sm font-medium mb-1">
-                Rows
+                行数
               </label>
               <input
                 id="rows"
@@ -291,7 +291,7 @@ export default function PresetEditPage() {
               htmlFor="question_count"
               className="block text-sm font-medium mb-1"
             >
-              Question count
+              問題数
             </label>
             <input
               id="question_count"
@@ -313,13 +313,13 @@ export default function PresetEditPage() {
               disabled={loading || (isNew && presetCount >= 10)}
               className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Saving...' : 'Save'}
+              {loading ? '保存中...' : '保存'}
             </button>
             <Link
               href="/teacher/presets"
               className="flex-1 px-6 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 text-center"
             >
-              Cancel
+              キャンセル
             </Link>
           </div>
         </form>

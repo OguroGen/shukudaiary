@@ -41,7 +41,7 @@ export default function HomeworkStartPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Loading...</div>
+        <div>読み込み中...</div>
       </div>
     )
   }
@@ -49,47 +49,47 @@ export default function HomeworkStartPage() {
   if (!homework) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Homework not found</div>
+        <div>宿題が見つかりません</div>
       </div>
     )
   }
 
   const typeName =
     homework.type === 'mul'
-      ? 'Multiplication'
+      ? 'かけ算'
       : homework.type === 'div'
-      ? 'Division'
-      : 'Mitori'
+      ? 'わり算'
+      : '見取り算'
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
       <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
         <h1 className="text-2xl font-semibold mb-6">
-          Shukudai #{homework.id.slice(0, 8)}
+          宿題 #{homework.id.slice(0, 8)}
         </h1>
 
         <div className="space-y-4 mb-6">
           <div>
-            <span className="font-semibold">Type:</span> {typeName}
+            <span className="font-semibold">種目:</span> {typeName}
           </div>
           <div>
-            <span className="font-semibold">Questions:</span> {homework.question_count}
+            <span className="font-semibold">問題数:</span> {homework.question_count}問
           </div>
           {homework.type !== 'mitori' && (
             <div>
-              <span className="font-semibold">Digits:</span>{' '}
-              {homework.left_digits}-digit × {homework.right_digits}-digit
+              <span className="font-semibold">桁数:</span>{' '}
+              {homework.left_digits}桁 × {homework.right_digits}桁
             </div>
           )}
           {homework.type === 'mitori' && (
             <div>
-              <span className="font-semibold">Rows:</span> {homework.rows}
+              <span className="font-semibold">行数:</span> {homework.rows}行
             </div>
           )}
           <div>
-            <span className="font-semibold">Available:</span>{' '}
-            {new Date(homework.start_date).toLocaleDateString()} ~{' '}
-            {new Date(homework.end_date).toLocaleDateString()}
+            <span className="font-semibold">解答可能期間:</span>{' '}
+            {new Date(homework.start_date).toLocaleDateString('ja-JP')} ~{' '}
+            {new Date(homework.end_date).toLocaleDateString('ja-JP')}
           </div>
         </div>
 
@@ -98,13 +98,13 @@ export default function HomeworkStartPage() {
             onClick={handleStart}
             className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Start now
+            開始する
           </button>
           <Link
             href="/student/home"
             className="flex-1 px-6 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 text-center"
           >
-            Back to home
+            ホームに戻る
           </Link>
         </div>
       </div>

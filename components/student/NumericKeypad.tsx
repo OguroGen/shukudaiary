@@ -1,5 +1,7 @@
 'use client'
 
+import { memo } from 'react'
+
 interface NumericKeypadProps {
   onNumberClick: (num: number) => void
   onClear: () => void
@@ -7,7 +9,7 @@ interface NumericKeypadProps {
   disabled?: boolean
 }
 
-export default function NumericKeypad({
+function NumericKeypad({
   onNumberClick,
   onClear,
   onSubmit,
@@ -51,4 +53,6 @@ export default function NumericKeypad({
     </div>
   )
 }
+
+export default memo(NumericKeypad)
 

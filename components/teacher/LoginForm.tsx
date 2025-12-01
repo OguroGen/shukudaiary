@@ -41,12 +41,12 @@ export default function TeacherLoginForm() {
   return (
     <div className="w-full max-w-md mx-auto p-6">
       <h1 className="text-2xl font-semibold mb-6 text-center">
-        Shukudaiary for Teachers
+        しゅくだいありー（先生用）
       </h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="email" className="block text-sm font-medium mb-1">
-            Email
+            メールアドレス
           </label>
           <input
             id="email"
@@ -59,7 +59,7 @@ export default function TeacherLoginForm() {
         </div>
         <div>
           <label htmlFor="password" className="block text-sm font-medium mb-1">
-            Password
+            パスワード
           </label>
           <input
             id="password"
@@ -80,7 +80,7 @@ export default function TeacherLoginForm() {
           disabled={loading}
           className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Logging in...' : 'Log in'}
+          {loading ? 'ログイン中...' : 'ログイン'}
         </button>
       </form>
     </div>

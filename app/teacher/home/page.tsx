@@ -24,69 +24,62 @@ export default function TeacherHomePage() {
         return
       }
 
-      // Get teacher and school info
+      // Get teacher and school info in one query
       supabase
         .from('teachers')
         .select('id, school_id, email, schools(name)')
         .eq('id', session.user.id)
         .single()
-        .then(({ data: teacher }) => {
-          if (teacher) {
-            setTeacherName(teacher.email)
-            if (teacher.schools && typeof teacher.schools === 'object') {
-              const school = teacher.schools as { name: string }
-              setSchoolName(school.name)
-            }
-          }
-        })
-
-      // Get teacher's school_id and today's stats
-      supabase
-        .from('teachers')
-        .select('school_id')
-        .eq('id', session.user.id)
-        .single()
-        .then(({ data: teacher }) => {
-          if (!teacher) {
+        .then(({ data: teacher, error }) => {
+          if (error || !teacher) {
             setLoading(false)
             return
           }
 
+          setTeacherName(teacher.email)
+          if (teacher.schools && typeof teacher.schools === 'object') {
+            const school = teacher.schools as { name: string }
+            setSchoolName(school.name)
+          }
+
           const today = new Date().toISOString().split('T')[0]
 
-          // Get students in school
-          supabase
-            .from('students')
-            .select('id')
-            .eq('school_id', teacher.school_id)
-            .then(({ data: students }) => {
-              if (!students || students.length === 0) {
-                setStats({ todayAnswers: 0, todaySubmissions: 0 })
-                setLoading(false)
-                return
-              }
+          // Get students in school and stats in parallel
+          Promise.all([
+            supabase
+              .from('students')
+              .select('id')
+              .eq('school_id', teacher.school_id),
+          ]).then(([studentsRes]) => {
+            const students = studentsRes.data || []
+            if (students.length === 0) {
+              setStats({ todayAnswers: 0, todaySubmissions: 0 })
+              setLoading(false)
+              return
+            }
 
-              const studentIds = students.map((s: any) => s.id)
+            const studentIds = students.map((s: any) => s.id)
 
-              Promise.all([
-                supabase
-                  .from('answers')
-                  .select('id', { count: 'exact', head: true })
-                  .in('student_id', studentIds)
-                  .gte('created_at', today),
-                supabase
-                  .from('homeworks')
-                  .select('id', { count: 'exact', head: true })
-                  .in('student_id', studentIds)
-                  .gte('created_at', today),
-              ]).then(([answersRes, homeworksRes]) => {
-                setStats({
-                  todayAnswers: answersRes.count || 0,
-                  todaySubmissions: homeworksRes.count || 0,
-                })
-                setLoading(false)
+            // Get stats in parallel
+            Promise.all([
+              supabase
+                .from('answers')
+                .select('id', { count: 'exact', head: true })
+                .in('student_id', studentIds)
+                .gte('created_at', today),
+              supabase
+                .from('homeworks')
+                .select('id', { count: 'exact', head: true })
+                .in('student_id', studentIds)
+                .gte('created_at', today),
+            ]).then(([answersRes, homeworksRes]) => {
+              setStats({
+                todayAnswers: answersRes.count || 0,
+                todaySubmissions: homeworksRes.count || 0,
               })
+              setLoading(false)
             })
+          })
         })
     })
   }, [router])
@@ -100,7 +93,7 @@ export default function TeacherHomePage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Loading...</div>
+        <div>読み込み中...</div>
       </div>
     )
   }
@@ -112,17 +105,17 @@ export default function TeacherHomePage() {
           <div className="flex justify-between items-center mb-4">
             <div>
               <h1 className="text-2xl font-semibold">
-                Welcome, {teacherName}
+                ようこそ、{teacherName}さん
               </h1>
               {schoolName && (
-                <p className="text-gray-600 mt-1">School: {schoolName}</p>
+                <p className="text-gray-600 mt-1">教室: {schoolName}</p>
               )}
             </div>
             <button
               onClick={handleLogout}
               className="text-sm text-gray-600 hover:text-gray-800"
             >
-              Logout
+              ログアウト
             </button>
           </div>
         </div>
@@ -131,13 +124,13 @@ export default function TeacherHomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
               <h3 className="text-lg font-semibold mb-2">
-                Today&apos;s shukudai submissions
+                今日の宿題提出数
               </h3>
               <p className="text-3xl font-bold">{stats.todaySubmissions}</p>
             </div>
             <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
               <h3 className="text-lg font-semibold mb-2">
-                Today&apos;s answers
+                今日の回答数
               </h3>
               <p className="text-3xl font-bold">{stats.todayAnswers}</p>
             </div>
@@ -145,25 +138,25 @@ export default function TeacherHomePage() {
         )}
 
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Menu</h2>
+          <h2 className="text-xl font-semibold mb-4">メニュー</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
               href="/teacher/students"
               className="px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center"
             >
-              Students
+              生徒管理
             </Link>
             <Link
               href="/teacher/homeworks"
               className="px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center"
             >
-              Homeworks
+              宿題管理
             </Link>
             <Link
               href="/teacher/presets"
               className="px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center"
             >
-              Presets
+              プリセット管理
             </Link>
           </div>
         </div>

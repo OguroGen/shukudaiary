@@ -46,12 +46,12 @@ export default function LoginForm() {
   return (
     <div className="w-full max-w-md mx-auto p-6">
       <h1 className="text-2xl font-semibold mb-6 text-center">
-        Log in to Shukudaiary
+        しゅくだいありーにログイン
       </h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="login_id" className="block text-sm font-medium mb-1">
-            Student ID
+            ログインID
           </label>
           <input
             id="login_id"
@@ -64,7 +64,7 @@ export default function LoginForm() {
         </div>
         <div>
           <label htmlFor="password" className="block text-sm font-medium mb-1">
-            Password
+            パスワード
           </label>
           <input
             id="password"
@@ -85,10 +85,10 @@ export default function LoginForm() {
           disabled={loading}
           className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Logging in...' : 'Log in'}
+          {loading ? 'ログイン中...' : 'ログイン'}
         </button>
         <p className="text-sm text-gray-600 text-center mt-4">
-          If you forget your password, ask your teacher.
+          パスワードを忘れた場合は、先生に聞いてください。
         </p>
       </form>
     </div>

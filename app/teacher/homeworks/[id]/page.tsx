@@ -65,7 +65,7 @@ export default function HomeworkDetailPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Loading...</div>
+        <div>読み込み中...</div>
       </div>
     )
   }
@@ -73,17 +73,17 @@ export default function HomeworkDetailPage() {
   if (!homework) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Homework not found</div>
+        <div>宿題が見つかりません</div>
       </div>
     )
   }
 
   const typeName =
     homework.type === 'mul'
-      ? 'Multiplication'
+      ? 'かけ算'
       : homework.type === 'div'
-      ? 'Division'
-      : 'Mitori'
+      ? 'わり算'
+      : '見取り算'
 
   const correctCount = answers.filter((a) => a.is_correct).length
 
@@ -105,14 +105,14 @@ export default function HomeworkDetailPage() {
           <div className="flex justify-between items-center mb-4">
             <div>
               <h1 className="text-2xl font-semibold">
-                Shukudai #{homework.id.slice(0, 8)} - {studentName}
+                宿題 #{homework.id.slice(0, 8)} - {studentName}
               </h1>
             </div>
             <Link
               href="/teacher/homeworks"
               className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
             >
-              Back to homeworks
+              宿題一覧に戻る
             </Link>
           </div>
         </div>
@@ -120,16 +120,16 @@ export default function HomeworkDetailPage() {
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
           <div className="space-y-2 mb-4">
             <div>
-              <span className="font-semibold">Type:</span> {typeName}
+              <span className="font-semibold">種目:</span> {typeName}
             </div>
             <div>
-              <span className="font-semibold">Score:</span> {correctCount} /{' '}
+              <span className="font-semibold">スコア:</span> {correctCount} /{' '}
               {answers.length}
             </div>
             {answers.length > 0 && (
               <div>
-                <span className="font-semibold">Solved at:</span>{' '}
-                {new Date(answers[0].created_at).toLocaleString()}
+                <span className="font-semibold">解答日時:</span>{' '}
+                {new Date(answers[0].created_at).toLocaleString('ja-JP')}
               </div>
             )}
           </div>
@@ -137,16 +137,16 @@ export default function HomeworkDetailPage() {
 
         {answers.length > 0 && (
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Answers</h2>
+            <h2 className="text-xl font-semibold mb-4">回答一覧</h2>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left p-2">#</th>
-                    <th className="text-left p-2">Question</th>
-                    <th className="text-left p-2">Correct</th>
-                    <th className="text-left p-2">Student</th>
-                    <th className="text-left p-2">Result</th>
+                    <th className="text-left p-2">問題</th>
+                    <th className="text-left p-2">正答</th>
+                    <th className="text-left p-2">生徒の答え</th>
+                    <th className="text-left p-2">結果</th>
                   </tr>
                 </thead>
                 <tbody>

@@ -139,7 +139,7 @@ export default function HomeworkCreatePage() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
       <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-semibold mb-6">Create shukudai</h1>
+        <h1 className="text-2xl font-semibold mb-6">宿題を作成</h1>
 
         {errors.general && (
           <div className="mb-4 p-3 bg-red-100 text-red-800 rounded">
@@ -150,7 +150,7 @@ export default function HomeworkCreatePage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="student" className="block text-sm font-medium mb-1">
-              Student
+              生徒
             </label>
             <select
               id="student"
@@ -159,7 +159,7 @@ export default function HomeworkCreatePage() {
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Select a student</option>
+              <option value="">生徒を選択</option>
               {students.map((student) => (
                 <option key={student.id} value={student.id}>
                   {student.nickname} ({student.login_id})
@@ -173,7 +173,7 @@ export default function HomeworkCreatePage() {
 
           <div>
             <label htmlFor="type" className="block text-sm font-medium mb-1">
-              Type
+              種目
             </label>
             <div className="flex gap-4">
               <label className="flex items-center">
@@ -185,7 +185,7 @@ export default function HomeworkCreatePage() {
                   onChange={(e) => setType(e.target.value as HomeworkType)}
                   className="mr-2"
                 />
-                Multiplication
+                かけ算
               </label>
               <label className="flex items-center">
                 <input
@@ -196,7 +196,7 @@ export default function HomeworkCreatePage() {
                   onChange={(e) => setType(e.target.value as HomeworkType)}
                   className="mr-2"
                 />
-                Division
+                わり算
               </label>
               <label className="flex items-center">
                 <input
@@ -207,7 +207,7 @@ export default function HomeworkCreatePage() {
                   onChange={(e) => setType(e.target.value as HomeworkType)}
                   className="mr-2"
                 />
-                Mitori
+                見取り算
               </label>
             </div>
             {errors.type && (
@@ -221,7 +221,7 @@ export default function HomeworkCreatePage() {
                 htmlFor="preset"
                 className="block text-sm font-medium mb-1"
               >
-                Preset (optional)
+                プリセット（任意）
               </label>
               <select
                 id="preset"
@@ -229,7 +229,7 @@ export default function HomeworkCreatePage() {
                 onChange={(e) => handlePresetChange(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">None (manual input)</option>
+                <option value="">なし（手動入力）</option>
                 {presets
                   .filter((p) => p.type === type)
                   .map((preset) => (
@@ -248,7 +248,7 @@ export default function HomeworkCreatePage() {
                   htmlFor="left_digits"
                   className="block text-sm font-medium mb-1"
                 >
-                  Left digits
+                  左側の桁数
                 </label>
                 <input
                   id="left_digits"
@@ -271,7 +271,7 @@ export default function HomeworkCreatePage() {
                   htmlFor="right_digits"
                   className="block text-sm font-medium mb-1"
                 >
-                  Right digits
+                  右側の桁数
                 </label>
                 <input
                   id="right_digits"
@@ -297,7 +297,7 @@ export default function HomeworkCreatePage() {
           {type === 'mitori' && (
             <div>
               <label htmlFor="rows" className="block text-sm font-medium mb-1">
-                Rows
+                行数
               </label>
               <input
                 id="rows"
@@ -320,7 +320,7 @@ export default function HomeworkCreatePage() {
               htmlFor="question_count"
               className="block text-sm font-medium mb-1"
             >
-              Question count
+              問題数
             </label>
             <input
               id="question_count"
@@ -346,7 +346,7 @@ export default function HomeworkCreatePage() {
               htmlFor="start_date"
               className="block text-sm font-medium mb-1"
             >
-              Start date
+              開始日
             </label>
             <input
               id="start_date"
@@ -366,7 +366,7 @@ export default function HomeworkCreatePage() {
               htmlFor="end_date"
               className="block text-sm font-medium mb-1"
             >
-              End date
+              終了日
             </label>
             <input
               id="end_date"
@@ -387,13 +387,13 @@ export default function HomeworkCreatePage() {
               disabled={loading}
               className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating...' : 'Create'}
+              {loading ? '作成中...' : '作成'}
             </button>
             <Link
               href="/teacher/homeworks"
               className="flex-1 px-6 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 text-center"
             >
-              Cancel
+              キャンセル
             </Link>
           </div>
         </form>

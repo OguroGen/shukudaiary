@@ -105,7 +105,7 @@ export default function PracticePage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Loading...</div>
+        <div>読み込み中...</div>
       </div>
     )
   }
@@ -115,10 +115,10 @@ export default function PracticePage() {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
         <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-          <h1 className="text-2xl font-semibold mb-6">Practice result</h1>
+          <h1 className="text-2xl font-semibold mb-6">練習の結果</h1>
           <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
             <div className="text-3xl font-semibold text-center">
-              Correct: {correctCount} / {PRACTICE_QUESTION_COUNT}
+              正解: {correctCount} / {PRACTICE_QUESTION_COUNT}
             </div>
           </div>
           <div className="flex gap-4">
@@ -132,13 +132,13 @@ export default function PracticePage() {
               }}
               className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
             >
-              Practice again
+              もう一度練習する
             </button>
             <Link
               href="/student/home"
               className="flex-1 px-6 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 text-center"
             >
-              Back to home
+              ホームに戻る
             </Link>
           </div>
         </div>
@@ -149,10 +149,10 @@ export default function PracticePage() {
   const currentQuestion = questions[currentIndex]
   const typeName =
     type === 'mul'
-      ? 'Multiplication practice'
+      ? 'かけ算の練習'
       : type === 'div'
-      ? 'Division practice'
-      : 'Mitori practice'
+      ? 'わり算の練習'
+      : '見取り算の練習'
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
@@ -161,7 +161,7 @@ export default function PracticePage() {
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-xl font-semibold">{typeName}</h1>
             <div className="text-lg">
-              Question {currentIndex + 1} / {PRACTICE_QUESTION_COUNT}
+              問題 {currentIndex + 1} / {PRACTICE_QUESTION_COUNT}
             </div>
           </div>
         </div>

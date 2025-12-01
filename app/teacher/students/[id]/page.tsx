@@ -81,7 +81,7 @@ export default function StudentDetailPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Loading...</div>
+        <div>読み込み中...</div>
       </div>
     )
   }
@@ -89,7 +89,7 @@ export default function StudentDetailPage() {
   if (!student) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Student not found</div>
+        <div>生徒が見つかりません</div>
       </div>
     )
   }
@@ -101,31 +101,31 @@ export default function StudentDetailPage() {
           <div className="flex justify-between items-center mb-4">
             <div>
               <h1 className="text-2xl font-semibold">
-                Student: {student.nickname} (ID: {student.login_id})
+                生徒: {student.nickname} (ID: {student.login_id})
               </h1>
             </div>
             <Link
               href="/teacher/students"
               className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
             >
-              Back to students
+              生徒一覧に戻る
             </Link>
           </div>
         </div>
 
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
-          <h2 className="text-xl font-semibold mb-4">Shukudai history</h2>
+          <h2 className="text-xl font-semibold mb-4">宿題履歴</h2>
           {homeworks.length === 0 ? (
-            <p className="text-gray-600">No homeworks yet.</p>
+            <p className="text-gray-600">宿題はまだありません。</p>
           ) : (
             <div className="space-y-2">
               {homeworks.map((homework) => {
                 const typeName =
                   homework.type === 'mul'
-                    ? 'Multiplication'
+                    ? 'かけ算'
                     : homework.type === 'div'
-                    ? 'Division'
-                    : 'Mitori'
+                    ? 'わり算'
+                    : '見取り算'
                 return (
                   <div
                     key={homework.id}
@@ -134,18 +134,18 @@ export default function StudentDetailPage() {
                     <div className="flex justify-between items-center">
                       <div>
                         <h3 className="font-semibold">
-                          Shukudai #{homework.id.slice(0, 8)} - {typeName}
+                          宿題 #{homework.id.slice(0, 8)} - {typeName}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          Solved at:{' '}
-                          {new Date(homework.created_at).toLocaleDateString()}
+                          解答日時:{' '}
+                          {new Date(homework.created_at).toLocaleDateString('ja-JP')}
                         </p>
                       </div>
                       <Link
                         href={`/teacher/homeworks/${homework.id}`}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                       >
-                        Open
+                        開く
                       </Link>
                     </div>
                   </div>
@@ -157,7 +157,7 @@ export default function StudentDetailPage() {
 
         {wrongAnswers.length > 0 && (
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Recent wrong answers</h2>
+            <h2 className="text-xl font-semibold mb-4">直近の誤答</h2>
             <div className="space-y-2">
               {wrongAnswers.map((answer, idx) => {
                 const q = answer.question as any
@@ -175,7 +175,7 @@ export default function StudentDetailPage() {
                     className="p-3 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900"
                   >
                     <div className="text-sm">
-                      {questionText} → Correct: {answer.correct_answer} / You:{' '}
+                      {questionText} → 正答: {answer.correct_answer} / 生徒の答え:{' '}
                       {answer.student_answer}
                     </div>
                   </div>
