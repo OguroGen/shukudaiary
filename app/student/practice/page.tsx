@@ -89,7 +89,7 @@ export default function PracticePage() {
 
     const newAnswers = [
       ...answers,
-      { question, studentAnswer, is_correct: isCorrect },
+      { question, studentAnswer, isCorrect: isCorrect },
     ]
     setAnswers(newAnswers)
 
@@ -111,7 +111,7 @@ export default function PracticePage() {
   }
 
   if (showResult) {
-    const correctCount = answers.filter((a) => a.is_correct === true).length
+    const correctCount = answers.filter((a) => a.isCorrect === true).length
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
         <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">

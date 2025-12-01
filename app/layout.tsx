@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Shukudaiary - そろばん教室向け学習日記",
+  title: "しゅくだいありー",
   description: "生徒の宿題や練習結果が学習日記として記録される、そろばん教室向けWebサービス",
 };
 
