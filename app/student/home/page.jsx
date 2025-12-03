@@ -1,14 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 export default function StudentHomePage() {
   const router = useRouter()
   const [nickname, setNickname] = useState('')
   const [homeworks, setHomeworks] = useState([])
   const [loading, setLoading] = useState(true)
+  const channelRef = useRef(null)
 
   useEffect(() => {
     const token = localStorage.getItem('student_token')
@@ -42,6 +44,39 @@ export default function StudentHomePage() {
       .catch(() => {
         router.push('/student/login')
       })
+
+    // Set up Supabase Realtime subscription
+    const supabase = createClient()
+    
+    // Subscribe to homeworks table changes for this student
+    // Using a custom channel with student_id filter
+    const channel = supabase
+      .channel(`homeworks:student:${studentId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'homeworks',
+          filter: `student_id=eq.${studentId}`, // Only listen to changes for this student
+        },
+        (payload) => {
+          console.log('Homework change detected:', payload)
+          // Reload homeworks when changes are detected
+          loadHomeworks(studentId)
+        }
+      )
+      .subscribe()
+
+    channelRef.current = channel
+
+    // Cleanup subscription on unmount
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current)
+        channelRef.current = null
+      }
+    }
   }, [router])
 
   const loadHomeworks = async (studentId) => {
