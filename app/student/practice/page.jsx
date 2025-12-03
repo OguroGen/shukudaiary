@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import NumericKeypad from '@/components/student/NumericKeypad'
@@ -17,7 +17,7 @@ import {
 
 const PRACTICE_QUESTION_COUNT = 10
 
-export default function PracticePage() {
+function PracticePageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const type = searchParams.get('type')
@@ -182,6 +182,18 @@ export default function PracticePage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PracticePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-yellow-50">
+        <div className="text-2xl font-bold text-orange-500">読み込み中...</div>
+      </div>
+    }>
+      <PracticePageContent />
+    </Suspense>
   )
 }
 
