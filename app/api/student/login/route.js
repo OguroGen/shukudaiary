@@ -15,6 +15,7 @@ export async function POST(request) {
     const result = await authenticateStudent({ login_id, password })
 
     if (!result) {
+      console.error('Authentication failed for login_id:', login_id)
       return NextResponse.json(
         { error: 'ログインIDまたはパスワードが正しくありません' },
         { status: 401 }
