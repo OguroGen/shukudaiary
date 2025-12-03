@@ -18,7 +18,11 @@ export default function HomeworkStartPage() {
       return
     }
 
-    fetch(`/api/student/homework/${homeworkId}`)
+    fetch(`/api/student/homework/${homeworkId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {

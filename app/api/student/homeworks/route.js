@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { validateStudentToken } from '@/lib/auth/student'
 
 export async function GET(request) {
@@ -15,15 +15,37 @@ export async function GET(request) {
       )
     }
 
-    // Verify token if provided
-    if (token) {
-      const validatedId = validateStudentToken(token)
-      if (!validatedId || validatedId !== studentId) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
+    // Token verification is required
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Authorization token is required' },
+        { status: 401 }
+      )
     }
 
-    const supabase = await createClient()
+    // Verify token and validate student_id
+    const validatedId = validateStudentToken(token)
+    if (!validatedId) {
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { status: 401 }
+      )
+    }
+
+    // Strictly verify that the token's student_id matches the request's student_id
+    if (validatedId !== studentId) {
+      console.error('Token student_id mismatch:', { validatedId, studentId })
+      return NextResponse.json(
+        { error: 'Unauthorized: student_id mismatch' },
+        { status: 403 }
+      )
+    }
+
+    // Use service_role key to bypass RLS
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
 
     const today = new Date().toISOString().split('T')[0]
 

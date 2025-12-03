@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateStudentToken } from '@/lib/auth/student'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request) {
   try {
@@ -16,14 +16,28 @@ export async function POST(request) {
       return NextResponse.json({ error: '無効なトークンです' }, { status: 401 })
     }
 
-    const supabase = await createClient()
+    // Use service_role key to bypass RLS
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
+
     const { data: student, error } = await supabase
       .from('students')
       .select('id, nickname')
       .eq('id', studentId)
       .single()
 
-    if (error || !student) {
+    if (error) {
+      console.error('Supabase error in verify:', error)
+      return NextResponse.json(
+        { error: '生徒情報が見つかりません' },
+        { status: 404 }
+      )
+    }
+
+    if (!student) {
+      console.error('Student not found for id:', studentId)
       return NextResponse.json(
         { error: '生徒情報が見つかりません' },
         { status: 404 }

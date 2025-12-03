@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hashPassword } from '@/lib/auth/student'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { validateStudentToken } from '@/lib/auth/student'
 
 export async function POST(request) {
@@ -29,7 +29,11 @@ export async function POST(request) {
 
     const passwordHash = await hashPassword(new_password)
 
-    const supabase = await createClient()
+    // Use service_role key to bypass RLS
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
 
     const { error } = await supabase
       .from('students')

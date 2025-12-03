@@ -33,7 +33,11 @@ export default function HomeworkQuizPage() {
       return
     }
 
-    fetch(`/api/student/homework/${homeworkId}`)
+    fetch(`/api/student/homework/${homeworkId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
@@ -100,10 +104,14 @@ export default function HomeworkQuizPage() {
 
     // Save answer to database
     const studentId = localStorage.getItem('student_id')
-    if (studentId) {
+    const token = localStorage.getItem('student_token')
+    if (studentId && token) {
       await fetch('/api/student/answer', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({
           homework_id: homeworkId,
           student_id: studentId,

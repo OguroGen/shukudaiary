@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { validateStudentToken } from '@/lib/auth/student'
 
 export async function POST(request) {
   try {
@@ -12,6 +13,8 @@ export async function POST(request) {
       is_correct,
       question_index,
     } = await request.json()
+
+    const token = request.headers.get('authorization')?.replace('Bearer ', '')
 
     if (
       !student_id ||
@@ -27,12 +30,68 @@ export async function POST(request) {
       )
     }
 
+    // Token verification is required
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Authorization token is required' },
+        { status: 401 }
+      )
+    }
+
+    // Verify token
+    const validatedStudentId = validateStudentToken(token)
+    if (!validatedStudentId) {
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { status: 401 }
+      )
+    }
+
+    // Strictly verify that the token's student_id matches the request's student_id
+    if (validatedStudentId !== student_id) {
+      console.error('Token student_id mismatch:', {
+        validatedStudentId,
+        student_id,
+      })
+      return NextResponse.json(
+        { error: 'Unauthorized: student_id mismatch' },
+        { status: 403 }
+      )
+    }
+
     // Use service_role key for server-side operations to bypass RLS
-    // This is safe because we validate the student_id from the token
+    // This is safe because we validate the student_id from the token first
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     )
+
+    // If homework_id is provided, verify that the homework belongs to this student
+    if (homework_id) {
+      const { data: homework, error: homeworkError } = await supabase
+        .from('homeworks')
+        .select('student_id')
+        .eq('id', homework_id)
+        .single()
+
+      if (homeworkError || !homework) {
+        return NextResponse.json(
+          { error: 'Homework not found' },
+          { status: 404 }
+        )
+      }
+
+      if (homework.student_id !== student_id) {
+        console.error('Homework access denied:', {
+          homeworkStudentId: homework.student_id,
+          student_id,
+        })
+        return NextResponse.json(
+          { error: 'Unauthorized: homework does not belong to this student' },
+          { status: 403 }
+        )
+      }
+    }
 
     const insertData = {
       homework_id: homework_id || null,

@@ -22,10 +22,16 @@ export default function HomeworkResultPage() {
 
     const studentId = localStorage.getItem('student_id')
     Promise.all([
-      fetch(`/api/student/homework/${homeworkId}`).then((res) => res.json()),
-      fetch(`/api/student/homework/${homeworkId}/answers?student_id=${studentId}`).then((res) =>
-        res.json()
-      ),
+      fetch(`/api/student/homework/${homeworkId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }).then((res) => res.json()),
+      fetch(`/api/student/homework/${homeworkId}/answers?student_id=${studentId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }).then((res) => res.json()),
     ])
       .then(([homeworkData, answersData]) => {
         if (homeworkData.error) {
