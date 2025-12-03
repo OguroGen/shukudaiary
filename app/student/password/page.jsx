@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 export default function StudentPasswordChangePage() {
   const router = useRouter()
+  const [oldPassword, setOldPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
@@ -24,13 +25,23 @@ export default function StudentPasswordChangePage() {
     setError('')
     setSuccess(false)
 
+    if (!oldPassword) {
+      setError('現在のパスワードを入力してください')
+      return
+    }
+
     if (newPassword !== confirmPassword) {
-      setError('パスワードが一致しません')
+      setError('新しいパスワードが一致しません')
       return
     }
 
     if (newPassword.length < 4) {
       setError('パスワードは4文字以上で入力してください')
+      return
+    }
+
+    if (oldPassword === newPassword) {
+      setError('新しいパスワードは現在のパスワードと異なる必要があります')
       return
     }
 
@@ -46,6 +57,7 @@ export default function StudentPasswordChangePage() {
         body: JSON.stringify({
           student_id: studentId,
           token,
+          old_password: oldPassword,
           new_password: newPassword,
         }),
       })
@@ -58,6 +70,7 @@ export default function StudentPasswordChangePage() {
       }
 
       setSuccess(true)
+      setOldPassword('')
       setNewPassword('')
       setConfirmPassword('')
     } catch (err) {
@@ -81,6 +94,19 @@ export default function StudentPasswordChangePage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label htmlFor="old_password" className="block text-base font-bold mb-2 text-gray-700">
+              現在のパスワード
+            </label>
+            <input
+              id="old_password"
+              type="password"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+              required
+              className="w-full px-5 py-3 border-4 border-yellow-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-yellow-200 text-lg"
+            />
+          </div>
           <div>
             <label htmlFor="new_password" className="block text-base font-bold mb-2 text-gray-700">
               新しいパスワード

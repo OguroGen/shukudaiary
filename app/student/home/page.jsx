@@ -83,17 +83,9 @@ export default function StudentHomePage() {
     <div className="min-h-screen bg-yellow-50 p-4">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-3xl shadow-xl p-6 mb-6 border-4 border-orange-300">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-3xl font-bold text-orange-500">
-              👋 こんにちは、{nickname}さん！
-            </h1>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-gray-600 hover:text-gray-800 bg-gray-100 px-4 py-2 rounded-2xl font-semibold hover:bg-gray-200"
-            >
-              ログアウト
-            </button>
-          </div>
+          <h1 className="text-3xl font-bold text-orange-500">
+            👋 こんにちは、{nickname}さん！
+          </h1>
         </div>
 
         <div className={`rounded-3xl shadow-xl p-6 mb-6 border-4 transition-all ${
@@ -147,7 +139,7 @@ export default function StudentHomePage() {
           )}
         </div>
 
-        <div className="bg-white rounded-3xl shadow-xl p-6 mb-6 border-4 border-green-300">
+        {/* <div className="bg-white rounded-3xl shadow-xl p-6 mb-6 border-4 border-green-300">
           <h2 className="text-2xl font-bold mb-6 text-green-600">🎯 自主練習</h2>
           <div className="space-y-4">
             <Link
@@ -169,16 +161,24 @@ export default function StudentHomePage() {
               ➗ わり算の練習
             </Link>
           </div>
-        </div>
+        </div> */}
 
         <div className="bg-white rounded-3xl shadow-xl p-6 border-4 border-gray-300">
           <h2 className="text-2xl font-bold mb-6 text-gray-700">⚙️ アカウント</h2>
-          <Link
-            href="/student/password"
-            className="block w-full px-6 py-4 bg-gray-400 text-white rounded-2xl hover:bg-gray-500 text-center font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
-          >
-            🔑 パスワードを変更
-          </Link>
+          <div className="space-y-4">
+            <Link
+              href="/student/password"
+              className="block w-full px-6 py-4 bg-gray-400 text-white rounded-2xl hover:bg-gray-500 text-center font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
+            >
+              🔑 パスワードを変更
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="w-full px-6 py-4 bg-red-400 text-white rounded-2xl hover:bg-red-500 font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
+            >
+              🚪 ログアウト
+            </button>
+          </div>
         </div>
       </div>
     </div>
