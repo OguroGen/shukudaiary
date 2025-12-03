@@ -7,6 +7,7 @@ interface NumericKeypadProps {
   onClear: () => void
   onSubmit: () => void
   disabled?: boolean
+  submitDisabled?: boolean
 }
 
 function NumericKeypad({
@@ -14,17 +15,31 @@ function NumericKeypad({
   onClear,
   onSubmit,
   disabled = false,
+  submitDisabled = false,
 }: NumericKeypadProps) {
-  const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  // テンキーの並び: 7-8-9, 4-5-6, 1-2-3
+  const numbers = [7, 8, 9, 4, 5, 6, 1, 2, 3]
+
+  const buttonColors = [
+    'bg-cyan-300 hover:bg-cyan-400 active:bg-cyan-500',  // 7
+    'bg-lime-300 hover:bg-lime-400 active:bg-lime-500',  // 8
+    'bg-amber-300 hover:bg-amber-400 active:bg-amber-500', // 9
+    'bg-blue-300 hover:bg-blue-400 active:bg-blue-500',   // 4
+    'bg-green-300 hover:bg-green-400 active:bg-green-500', // 5
+    'bg-purple-300 hover:bg-purple-400 active:bg-purple-500', // 6
+    'bg-yellow-300 hover:bg-yellow-400 active:bg-yellow-500', // 1
+    'bg-pink-300 hover:bg-pink-400 active:bg-pink-500',   // 2
+    'bg-orange-300 hover:bg-orange-400 active:bg-orange-500', // 3
+  ]
 
   return (
-    <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto">
-      {numbers.map((num) => (
+    <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
+      {numbers.map((num, idx) => (
         <button
           key={num}
           onClick={() => onNumberClick(num)}
           disabled={disabled}
-          className="aspect-square bg-gray-200 hover:bg-gray-300 active:bg-gray-400 rounded-lg text-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`aspect-square ${buttonColors[idx]} rounded-3xl text-3xl font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-110 active:scale-95 transition-transform border-4 border-white`}
         >
           {num}
         </button>
@@ -32,23 +47,23 @@ function NumericKeypad({
       <button
         onClick={onClear}
         disabled={disabled}
-        className="aspect-square bg-red-500 hover:bg-red-600 active:bg-red-700 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+        className="aspect-square bg-red-400 hover:bg-red-500 active:bg-red-600 text-white rounded-3xl font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-110 active:scale-95 transition-transform border-4 border-white text-2xl"
       >
-        C
+        🗑️ C
       </button>
       <button
         onClick={() => onNumberClick(0)}
         disabled={disabled}
-        className="aspect-square bg-gray-200 hover:bg-gray-300 active:bg-gray-400 rounded-lg text-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+        className="aspect-square bg-yellow-300 hover:bg-yellow-400 active:bg-yellow-500 rounded-3xl text-3xl font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-110 active:scale-95 transition-transform border-4 border-white"
       >
         0
       </button>
       <button
         onClick={onSubmit}
-        disabled={disabled}
-        className="aspect-square bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={disabled || submitDisabled}
+        className="aspect-square bg-green-400 hover:bg-green-500 active:bg-green-600 text-white rounded-3xl font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-110 active:scale-95 transition-transform border-4 border-white text-2xl"
       >
-        OK
+        ✓ OK
       </button>
     </div>
   )

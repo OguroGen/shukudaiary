@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
+import { Database } from '@/types/database'
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,9 +28,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await createClient()
+    // Use service_role key for server-side operations to bypass RLS
+    // This is safe because we validate the student_id from the token
+    const supabase = createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
 
-    const { error } = await supabase.from('answers').insert({
+    const { data, error } = await supabase.from('answers').insert({
       homework_id: homework_id || null,
       student_id,
       question,
@@ -37,12 +43,22 @@ export async function POST(request: NextRequest) {
       student_answer,
       is_correct,
       question_index,
-    })
+    }).select()
 
     if (error) {
       console.error('Error saving answer:', error)
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      })
       return NextResponse.json(
-        { error: 'Failed to save answer' },
+        { 
+          error: 'Failed to save answer',
+          details: error.message,
+          code: error.code,
+        },
         { status: 500 }
       )
     }

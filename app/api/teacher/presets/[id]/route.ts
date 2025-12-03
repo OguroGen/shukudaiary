@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const supabase = await createClient()
@@ -17,7 +17,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const presetId = params.id
+    const resolvedParams = await Promise.resolve(params)
+    const presetId = resolvedParams.id
     const { name, type, left_digits, right_digits, rows, question_count } =
       await request.json()
 
@@ -88,7 +89,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const supabase = await createClient()
@@ -102,7 +103,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const presetId = params.id
+    const resolvedParams = await Promise.resolve(params)
+    const presetId = resolvedParams.id
 
     // Get teacher's school_id
     const { data: teacher } = await supabase

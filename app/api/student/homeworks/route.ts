@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
 
     const today = new Date().toISOString().split('T')[0]
 
+    // Get all homeworks for the student
     const { data: homeworks, error } = await supabase
       .from('homeworks')
       .select('*')
@@ -42,7 +43,44 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ homeworks: homeworks || [] })
+    if (!homeworks || homeworks.length === 0) {
+      return NextResponse.json({ homeworks: [] })
+    }
+
+    // Get answer counts for each homework
+    const homeworkIds = homeworks.map((h) => h.id)
+    const { data: answerCounts, error: answerError } = await supabase
+      .from('answers')
+      .select('homework_id')
+      .in('homework_id', homeworkIds)
+      .eq('student_id', studentId)
+
+    if (answerError) {
+      console.error('Error fetching answer counts:', answerError)
+      return NextResponse.json(
+        { error: 'Failed to fetch answer counts' },
+        { status: 500 }
+      )
+    }
+
+    // Count answers per homework
+    const answerCountMap = new Map<string, number>()
+    if (answerCounts) {
+      answerCounts.forEach((answer) => {
+        if (answer.homework_id) {
+          const count = answerCountMap.get(answer.homework_id) || 0
+          answerCountMap.set(answer.homework_id, count + 1)
+        }
+      })
+    }
+
+    // Filter out completed homeworks (where answer count equals question_count)
+    const incompleteHomeworks = homeworks.filter((homework) => {
+      const answerCount = answerCountMap.get(homework.id) || 0
+      return answerCount < homework.question_count
+    })
+
+    return NextResponse.json({ homeworks: incompleteHomeworks })
   } catch (error) {
     console.error('Homeworks API error:', error)
     return NextResponse.json(

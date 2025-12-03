@@ -104,21 +104,27 @@ export default function PracticePage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div>読み込み中...</div>
+      <div className="flex min-h-screen items-center justify-center bg-yellow-50">
+        <div className="text-2xl font-bold text-orange-500">読み込み中...</div>
       </div>
     )
   }
 
   if (showResult) {
     const correctCount = answers.filter((a) => a.isCorrect === true).length
+    const percentage = Math.round((correctCount / PRACTICE_QUESTION_COUNT) * 100)
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
-        <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-          <h1 className="text-2xl font-semibold mb-6">練習の結果</h1>
-          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
-            <div className="text-3xl font-semibold text-center">
+      <div className="min-h-screen bg-yellow-50 p-4">
+        <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-8 border-4 border-green-300">
+          <h1 className="text-3xl font-bold mb-8 text-center text-green-600">
+            🎉 練習の結果 🎉
+          </h1>
+          <div className="mb-8 p-8 bg-green-100 rounded-3xl border-4 border-green-400">
+            <div className="text-5xl font-bold text-center text-green-700 mb-2">
               正解: {correctCount} / {PRACTICE_QUESTION_COUNT}
+            </div>
+            <div className="text-3xl font-bold text-center text-green-600">
+              {percentage}% できました！
             </div>
           </div>
           <div className="flex gap-4">
@@ -130,15 +136,15 @@ export default function PracticePage() {
                 setShowResult(false)
                 generateQuestions(type!)
               }}
-              className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              className="flex-1 px-6 py-4 bg-green-400 text-white rounded-2xl hover:bg-green-500 font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
             >
-              もう一度練習する
+              🔄 もう一度練習する
             </button>
             <Link
               href="/student/home"
-              className="flex-1 px-6 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 text-center"
+              className="flex-1 px-6 py-4 bg-gray-400 text-white rounded-2xl hover:bg-gray-500 text-center font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
             >
-              ホームに戻る
+              🏠 ホームに戻る
             </Link>
           </div>
         </div>
@@ -149,24 +155,24 @@ export default function PracticePage() {
   const currentQuestion = questions[currentIndex]
   const typeName =
     type === 'mul'
-      ? 'かけ算の練習'
+      ? '✖️ かけ算の練習'
       : type === 'div'
-      ? 'わり算の練習'
-      : '見取り算の練習'
+      ? '➗ わり算の練習'
+      : '➕ 見取り算の練習'
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
+    <div className="min-h-screen bg-yellow-50 p-4">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
+        <div className="bg-white rounded-3xl shadow-xl p-6 mb-6 border-4 border-blue-300">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-xl font-semibold">{typeName}</h1>
-            <div className="text-lg">
+            <h1 className="text-2xl font-bold text-blue-600">{typeName}</h1>
+            <div className="text-xl font-bold text-orange-500 bg-orange-100 px-4 py-2 rounded-2xl">
               問題 {currentIndex + 1} / {PRACTICE_QUESTION_COUNT}
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
+        <div className="bg-white rounded-3xl shadow-xl p-6 mb-6 border-4 border-yellow-300">
           <QuestionDisplay
             type={type!}
             question={currentQuestion}
@@ -174,12 +180,12 @@ export default function PracticePage() {
           />
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-3xl shadow-xl p-6 border-4 border-green-300">
           <NumericKeypad
             onNumberClick={handleNumberClick}
             onClear={handleClear}
             onSubmit={handleSubmit}
-            disabled={!currentAnswer}
+            submitDisabled={!currentAnswer}
           />
         </div>
       </div>

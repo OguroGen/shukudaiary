@@ -12,9 +12,6 @@ const nextConfig: NextConfig = {
   // Compress output
   compress: true,
   
-  // Optimize production builds
-  swcMinify: true,
-  
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: ['@supabase/supabase-js'],

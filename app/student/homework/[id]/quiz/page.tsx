@@ -135,8 +135,8 @@ export default function HomeworkQuizPage() {
 
   if (loading || !homework || questions.length === 0) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div>読み込み中...</div>
+      <div className="flex min-h-screen items-center justify-center bg-yellow-50">
+        <div className="text-2xl font-bold text-orange-500">読み込み中...</div>
       </div>
     )
   }
@@ -144,20 +144,20 @@ export default function HomeworkQuizPage() {
   const currentQuestion = questions[currentIndex]
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
+    <div className="min-h-screen bg-yellow-50 p-4">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
+        <div className="bg-white rounded-3xl shadow-xl p-6 mb-6 border-4 border-blue-300">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-xl font-semibold">
-              宿題 #{homework.id.slice(0, 8)}
+            <h1 className="text-2xl font-bold text-blue-600">
+              📝 宿題 #{homework.id.slice(0, 8)}
             </h1>
-            <div className="text-lg">
+            <div className="text-xl font-bold text-orange-500 bg-orange-100 px-4 py-2 rounded-2xl">
               問題 {currentIndex + 1} / {questions.length}
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
+        <div className="bg-white rounded-3xl shadow-xl p-6 mb-6 border-4 border-yellow-300">
           <QuestionDisplay
             type={homework.type}
             question={currentQuestion}
@@ -165,12 +165,12 @@ export default function HomeworkQuizPage() {
           />
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-3xl shadow-xl p-6 border-4 border-green-300">
           <NumericKeypad
             onNumberClick={handleNumberClick}
             onClear={handleClear}
             onSubmit={handleSubmit}
-            disabled={!currentAnswer}
+            submitDisabled={!currentAnswer}
           />
         </div>
       </div>

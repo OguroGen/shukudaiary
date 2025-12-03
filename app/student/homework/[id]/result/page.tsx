@@ -60,16 +60,16 @@ export default function HomeworkResultPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div>読み込み中...</div>
+      <div className="flex min-h-screen items-center justify-center bg-yellow-50">
+        <div className="text-2xl font-bold text-orange-500">読み込み中...</div>
       </div>
     )
   }
 
   if (!homework || !result) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div>結果が見つかりません</div>
+      <div className="flex min-h-screen items-center justify-center bg-yellow-50">
+        <div className="text-2xl font-bold text-red-500">結果が見つかりません</div>
       </div>
     )
   }
@@ -85,30 +85,41 @@ export default function HomeworkResultPage() {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
-      <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-semibold mb-6">宿題の結果</h1>
+  const percentage = Math.round((result.correct / result.total) * 100)
 
-        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
-          <div className="text-3xl font-semibold text-center">
+  return (
+    <div className="min-h-screen bg-yellow-50 p-4">
+      <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-8 border-4 border-green-300">
+        <h1 className="text-3xl font-bold mb-8 text-center text-green-600">
+          🎉 宿題の結果 🎉
+        </h1>
+
+        <div className="mb-8 p-8 bg-green-100 rounded-3xl border-4 border-green-400">
+          <div className="text-5xl font-bold text-center text-green-700 mb-2">
             正解: {result.correct} / {result.total}
+          </div>
+          <div className="text-3xl font-bold text-center text-green-600">
+            {percentage}% できました！
           </div>
         </div>
 
         {result.wrongAnswers.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-4">間違えた問題</h2>
-            <div className="space-y-2">
+          <div className="mb-8 bg-red-50 rounded-3xl p-6 border-4 border-red-300">
+            <h2 className="text-2xl font-bold mb-4 text-red-600">❌ 間違えた問題</h2>
+            <div className="space-y-3">
               {result.wrongAnswers.map((answer, idx) => (
                 <div
                   key={answer.id || idx}
-                  className="p-3 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900"
+                  className="p-4 border-4 border-red-300 rounded-2xl bg-white"
                 >
-                  <div className="text-sm">
-                    <strong>問題{answer.question_index + 1}:</strong>{' '}
-                    {formatQuestion(answer)} → 正答: {answer.correct_answer}{' '}
-                    / あなたの答え: {answer.student_answer}
+                  <div className="text-base font-semibold text-gray-800">
+                    <span className="text-red-500">問題{answer.question_index + 1}:</span>{' '}
+                    {formatQuestion(answer)}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    <span className="text-green-600 font-bold">正答: {answer.correct_answer}</span>
+                    {' / '}
+                    <span className="text-red-600 font-bold">あなたの答え: {answer.student_answer}</span>
                   </div>
                 </div>
               ))}
@@ -118,9 +129,9 @@ export default function HomeworkResultPage() {
 
         <Link
           href="/student/home"
-          className="block w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center"
+          className="block w-full px-6 py-4 bg-orange-400 text-white rounded-2xl hover:bg-orange-500 text-center font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
         >
-          ホームに戻る
+          🏠 ホームに戻る
         </Link>
       </div>
     </div>

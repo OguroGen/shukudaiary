@@ -68,19 +68,21 @@ export default function StudentPasswordChangePage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
-      <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-semibold mb-6">パスワードを変更</h1>
+    <div className="min-h-screen bg-yellow-50 p-4">
+      <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-8 border-4 border-gray-300">
+        <h1 className="text-3xl font-bold mb-8 text-center text-gray-700">
+          🔑 パスワードを変更
+        </h1>
 
         {success && (
-          <div className="mb-4 p-3 bg-green-100 text-green-800 rounded">
-            パスワードを変更しました
+          <div className="mb-6 p-4 bg-green-100 text-green-800 rounded-2xl border-4 border-green-300 font-bold text-lg text-center">
+            ✅ パスワードを変更しました
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="new_password" className="block text-sm font-medium mb-1">
+            <label htmlFor="new_password" className="block text-base font-bold mb-2 text-gray-700">
               新しいパスワード
             </label>
             <input
@@ -89,13 +91,13 @@ export default function StudentPasswordChangePage() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-5 py-3 border-4 border-yellow-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-yellow-200 text-lg"
             />
           </div>
           <div>
             <label
               htmlFor="confirm_password"
-              className="block text-sm font-medium mb-1"
+              className="block text-base font-bold mb-2 text-gray-700"
             >
               新しいパスワード（確認）
             </label>
@@ -105,11 +107,11 @@ export default function StudentPasswordChangePage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-5 py-3 border-4 border-yellow-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-yellow-200 text-lg"
             />
           </div>
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded">
+            <div className="text-red-700 text-base bg-red-100 p-4 rounded-2xl border-4 border-red-300 font-semibold">
               {error}
             </div>
           )}
@@ -117,15 +119,15 @@ export default function StudentPasswordChangePage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-4 bg-orange-400 text-white rounded-2xl hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
             >
-              {loading ? '保存中...' : '保存'}
+              {loading ? '保存中...' : '💾 保存'}
             </button>
             <Link
               href="/student/home"
-              className="flex-1 px-6 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 text-center"
+              className="flex-1 px-6 py-4 bg-gray-400 text-white rounded-2xl hover:bg-gray-500 text-center font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
             >
-              ホームに戻る
+              🏠 ホームに戻る
             </Link>
           </div>
         </form>

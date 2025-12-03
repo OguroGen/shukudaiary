@@ -74,47 +74,59 @@ export default function StudentHomePage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div>読み込み中...</div>
+      <div className="flex min-h-screen items-center justify-center bg-yellow-50">
+        <div className="text-2xl font-bold text-orange-500">読み込み中...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
+    <div className="min-h-screen bg-yellow-50 p-4">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
+        <div className="bg-white rounded-3xl shadow-xl p-6 mb-6 border-4 border-orange-300">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-semibold">こんにちは、{nickname}さん！</h1>
+            <h1 className="text-3xl font-bold text-orange-500">
+              👋 こんにちは、{nickname}さん！
+            </h1>
             <button
               onClick={handleLogout}
-              className="text-sm text-gray-600 hover:text-gray-800"
+              className="text-sm text-gray-600 hover:text-gray-800 bg-gray-100 px-4 py-2 rounded-2xl font-semibold hover:bg-gray-200"
             >
               ログアウト
             </button>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
-          <h2 className="text-xl font-semibold mb-4">あなたの宿題</h2>
+        <div className={`rounded-3xl shadow-xl p-6 mb-6 border-4 transition-all ${
+          homeworks.length === 0 
+            ? 'bg-white border-blue-300' 
+            : 'bg-red-50 border-red-400'
+        }`}>
           {homeworks.length === 0 ? (
-            <p className="text-gray-600">宿題はありません。</p>
+            <>
+              <h2 className="text-2xl font-bold mb-6 text-blue-600">📚 しゅくだいナシー</h2>
+              <p className="text-gray-600 text-lg">宿題はありません。🎉</p>
+            </>
           ) : (
-            <div className="space-y-4">
-              {homeworks.map((homework) => (
+            <>
+              <h2 className="text-3xl font-bold mb-6 text-red-600 animate-bounce">
+                📚 しゅくだいアリー
+              </h2>
+              <div className="space-y-4">
+                {homeworks.map((homework) => (
                 <div
                   key={homework.id}
-                  className="border border-gray-200 rounded-lg p-4"
+                  className="border-4 border-yellow-300 rounded-3xl p-5 bg-yellow-50 hover:bg-yellow-100 transition-colors"
                 >
-                  <h3 className="font-semibold mb-2">
-                    宿題 #{homework.id.slice(0, 8)} -{' '}
+                  <h3 className="font-bold text-xl mb-3 text-gray-800">
+                    📝 宿題 #{homework.id.slice(0, 8)} -{' '}
                     {homework.type === 'mul'
-                      ? 'かけ算'
+                      ? '✖️ かけ算'
                       : homework.type === 'div'
-                      ? 'わり算'
-                      : '見取り算'}
+                      ? '➗ わり算'
+                      : '➕ 見取り算'}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="text-base text-gray-700 mb-2 font-semibold">
                     {homework.question_count}問
                     {homework.type !== 'mitori' &&
                       ` / ${homework.left_digits}桁 × ${homework.right_digits}桁`}
@@ -125,47 +137,48 @@ export default function StudentHomePage() {
                   </p>
                   <Link
                     href={`/student/homework/${homework.id}/start`}
-                    className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="inline-block px-6 py-3 bg-orange-400 text-white rounded-2xl hover:bg-orange-500 font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
                   >
-                    開始
+                    🚀 開始
                   </Link>
                 </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
-          <h2 className="text-xl font-semibold mb-4">自主練習</h2>
-          <div className="space-y-3">
+        <div className="bg-white rounded-3xl shadow-xl p-6 mb-6 border-4 border-green-300">
+          <h2 className="text-2xl font-bold mb-6 text-green-600">🎯 自主練習</h2>
+          <div className="space-y-4">
             <Link
               href="/student/practice?type=mitori"
-              className="block w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-center"
+              className="block w-full px-6 py-4 bg-green-400 text-white rounded-2xl hover:bg-green-500 text-center font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
             >
-              見取り算の練習
+              ➕ 見取り算の練習
             </Link>
             <Link
               href="/student/practice?type=mul"
-              className="block w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-center"
+              className="block w-full px-6 py-4 bg-blue-400 text-white rounded-2xl hover:bg-blue-500 text-center font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
             >
-              かけ算の練習
+              ✖️ かけ算の練習
             </Link>
             <Link
               href="/student/practice?type=div"
-              className="block w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-center"
+              className="block w-full px-6 py-4 bg-purple-400 text-white rounded-2xl hover:bg-purple-500 text-center font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
             >
-              わり算の練習
+              ➗ わり算の練習
             </Link>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">アカウント</h2>
+        <div className="bg-white rounded-3xl shadow-xl p-6 border-4 border-gray-300">
+          <h2 className="text-2xl font-bold mb-6 text-gray-700">⚙️ アカウント</h2>
           <Link
             href="/student/password"
-            className="block w-full px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-center"
+            className="block w-full px-6 py-4 bg-gray-400 text-white rounded-2xl hover:bg-gray-500 text-center font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
           >
-            パスワードを変更
+            🔑 パスワードを変更
           </Link>
         </div>
       </div>
