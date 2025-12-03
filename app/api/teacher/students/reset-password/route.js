@@ -56,7 +56,6 @@ export async function POST(request) {
       .eq('id', student_id)
 
     if (error) {
-      console.error('Error resetting password:', error)
       return NextResponse.json(
         { error: 'Failed to reset password' },
         { status: 500 }
@@ -65,7 +64,6 @@ export async function POST(request) {
 
     return NextResponse.json({ new_password: newPassword })
   } catch (error) {
-    console.error('Reset password API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

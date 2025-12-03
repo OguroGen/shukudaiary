@@ -34,7 +34,6 @@ export async function GET(request) {
 
     // Strictly verify that the token's student_id matches the request's student_id
     if (validatedId !== studentId) {
-      console.error('Token student_id mismatch:', { validatedId, studentId })
       return NextResponse.json(
         { error: 'Unauthorized: student_id mismatch' },
         { status: 403 }
@@ -58,7 +57,6 @@ export async function GET(request) {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching homeworks:', error)
       return NextResponse.json(
         { error: 'Failed to fetch homeworks' },
         { status: 500 }
@@ -78,7 +76,6 @@ export async function GET(request) {
       .eq('student_id', studentId)
 
     if (answerError) {
-      console.error('Error fetching answer counts:', answerError)
       return NextResponse.json(
         { error: 'Failed to fetch answer counts' },
         { status: 500 }
@@ -104,7 +101,6 @@ export async function GET(request) {
 
     return NextResponse.json({ homeworks: incompleteHomeworks })
   } catch (error) {
-    console.error('Homeworks API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

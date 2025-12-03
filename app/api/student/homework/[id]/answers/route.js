@@ -40,7 +40,6 @@ export async function GET(request, { params }) {
       .order('question_index', { ascending: true })
 
     if (error) {
-      console.error('Error fetching answers:', error)
       return NextResponse.json(
         { error: 'Failed to fetch answers' },
         { status: 500 }
@@ -49,7 +48,6 @@ export async function GET(request, { params }) {
 
     return NextResponse.json({ answers: answers || [] })
   } catch (error) {
-    console.error('Answers API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

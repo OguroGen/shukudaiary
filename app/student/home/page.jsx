@@ -61,7 +61,6 @@ export default function StudentHomePage() {
           filter: `student_id=eq.${studentId}`, // Only listen to changes for this student
         },
         (payload) => {
-          console.log('Homework change detected:', payload)
           // Reload homeworks when changes are detected
           loadHomeworks(studentId)
         }
@@ -93,7 +92,6 @@ export default function StudentHomePage() {
         setHomeworks(data.homeworks || [])
       }
     } catch (error) {
-      console.error('Failed to load homeworks:', error)
     } finally {
       setLoading(false)
     }

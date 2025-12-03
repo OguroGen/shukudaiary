@@ -64,7 +64,6 @@ export async function POST(request) {
       .single()
 
     if (error) {
-      console.error('Error creating preset:', error)
       return NextResponse.json(
         { error: 'Failed to create preset' },
         { status: 500 }
@@ -73,7 +72,6 @@ export async function POST(request) {
 
     return NextResponse.json({ preset })
   } catch (error) {
-    console.error('Create preset API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

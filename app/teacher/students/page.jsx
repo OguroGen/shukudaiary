@@ -42,13 +42,11 @@ export default function StudentsListPage() {
         .eq('school_id', teacher.school_id)
         .order('created_at', { ascending: false })
 
-      if (error) {
-        console.error('Error loading students:', error)
-      } else {
+      if (!error) {
         setStudents(data || [])
       }
     } catch (error) {
-      console.error('Error:', error)
+      // Error handling
     } finally {
       setLoading(false)
     }

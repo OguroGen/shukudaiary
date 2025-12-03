@@ -68,7 +68,6 @@ export async function POST(request) {
       .single()
 
     if (error) {
-      console.error('Error creating homework:', error)
       return NextResponse.json(
         { error: 'Failed to create homework' },
         { status: 500 }
@@ -77,7 +76,6 @@ export async function POST(request) {
 
     return NextResponse.json({ homework })
   } catch (error) {
-    console.error('Create homework API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

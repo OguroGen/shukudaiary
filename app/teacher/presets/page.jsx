@@ -45,7 +45,7 @@ export default function PresetsListPage() {
         setPresets(data)
       }
     } catch (error) {
-      console.error('Error loading presets:', error)
+      // Error handling
     } finally {
       setLoading(false)
     }

@@ -46,10 +46,6 @@ export async function GET(request, { params }) {
 
     // Strictly verify that the homework belongs to the authenticated student
     if (homework.student_id !== validatedStudentId) {
-      console.error('Homework access denied:', {
-        homeworkStudentId: homework.student_id,
-        validatedStudentId,
-      })
       return NextResponse.json(
         { error: 'Unauthorized: homework does not belong to this student' },
         { status: 403 }
@@ -58,7 +54,6 @@ export async function GET(request, { params }) {
 
     return NextResponse.json({ homework })
   } catch (error) {
-    console.error('Homework API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -15,7 +15,6 @@ export async function POST(request) {
     const result = await authenticateStudent({ login_id, password })
 
     if (!result) {
-      console.error('Authentication failed for login_id:', login_id)
       return NextResponse.json(
         { error: 'ログインIDまたはパスワードが正しくありません' },
         { status: 401 }
@@ -31,7 +30,6 @@ export async function POST(request) {
       expires_at: token.expires_at,
     })
   } catch (error) {
-    console.error('Login error:', error)
     return NextResponse.json(
       { error: 'ログインに失敗しました' },
       { status: 500 }

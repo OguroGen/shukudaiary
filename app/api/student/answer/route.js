@@ -49,10 +49,6 @@ export async function POST(request) {
 
     // Strictly verify that the token's student_id matches the request's student_id
     if (validatedStudentId !== student_id) {
-      console.error('Token student_id mismatch:', {
-        validatedStudentId,
-        student_id,
-      })
       return NextResponse.json(
         { error: 'Unauthorized: student_id mismatch' },
         { status: 403 }
@@ -82,10 +78,6 @@ export async function POST(request) {
       }
 
       if (homework.student_id !== student_id) {
-        console.error('Homework access denied:', {
-          homeworkStudentId: homework.student_id,
-          student_id,
-        })
         return NextResponse.json(
           { error: 'Unauthorized: homework does not belong to this student' },
           { status: 403 }
@@ -109,26 +101,14 @@ export async function POST(request) {
       .select()
 
     if (error) {
-      console.error('Error saving answer:', error)
-      console.error('Error details:', {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-      })
       return NextResponse.json(
-        { 
-          error: 'Failed to save answer',
-          details: error.message,
-          code: error.code,
-        },
+        { error: 'Failed to save answer' },
         { status: 500 }
       )
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Answer API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

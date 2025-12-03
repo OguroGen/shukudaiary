@@ -28,16 +28,7 @@ export async function POST(request) {
       .eq('id', studentId)
       .single()
 
-    if (error) {
-      console.error('Supabase error in verify:', error)
-      return NextResponse.json(
-        { error: '生徒情報が見つかりません' },
-        { status: 404 }
-      )
-    }
-
-    if (!student) {
-      console.error('Student not found for id:', studentId)
+    if (error || !student) {
       return NextResponse.json(
         { error: '生徒情報が見つかりません' },
         { status: 404 }
@@ -49,7 +40,6 @@ export async function POST(request) {
       nickname: student.nickname,
     })
   } catch (error) {
-    console.error('Verify error:', error)
     return NextResponse.json(
       { error: '認証に失敗しました' },
       { status: 500 }

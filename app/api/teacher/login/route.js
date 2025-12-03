@@ -56,7 +56,6 @@ export async function POST(request) {
       school: school || null,
     })
   } catch (error) {
-    console.error('Login error:', error)
     return NextResponse.json(
       { error: 'Login failed' },
       { status: 500 }

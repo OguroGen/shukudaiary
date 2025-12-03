@@ -56,7 +56,7 @@ export default function PresetEditPage() {
         setPresetCount(count || 0)
       }
     } catch (error) {
-      console.error('Error loading preset count:', error)
+      // Error handling
     } finally {
       setLoadingData(false)
     }
@@ -79,7 +79,7 @@ export default function PresetEditPage() {
         setQuestionCount(preset.question_count)
       }
     } catch (error) {
-      console.error('Error loading preset:', error)
+      // Error handling
     } finally {
       setLoadingData(false)
     }

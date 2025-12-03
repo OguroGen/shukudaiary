@@ -63,7 +63,7 @@ export default function HomeworksListPage() {
         )
       }
     } catch (error) {
-      console.error('Error loading homeworks:', error)
+      // Error handling
     } finally {
       setLoading(false)
     }

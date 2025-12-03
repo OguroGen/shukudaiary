@@ -41,7 +41,6 @@ export async function POST(request) {
       .single()
 
     if (fetchError || !student) {
-      console.error('Error fetching student:', fetchError)
       return NextResponse.json(
         { error: '生徒情報が見つかりません' },
         { status: 404 }
@@ -67,7 +66,6 @@ export async function POST(request) {
       .eq('id', student_id)
 
     if (error) {
-      console.error('Error updating password:', error)
       return NextResponse.json(
         { error: 'パスワード変更に失敗しました' },
         { status: 500 }
@@ -76,7 +74,6 @@ export async function POST(request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Password change API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

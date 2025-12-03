@@ -87,7 +87,6 @@ export async function POST(request) {
       .single()
 
     if (error) {
-      console.error('Error creating student:', error)
       return NextResponse.json(
         { error: 'Failed to create student' },
         { status: 500 }
@@ -96,7 +95,6 @@ export async function POST(request) {
 
     return NextResponse.json({ student })
   } catch (error) {
-    console.error('Create student API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

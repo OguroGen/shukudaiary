@@ -68,7 +68,7 @@ export default function HomeworkCreatePage() {
         setPresets(presetsData)
       }
     } catch (error) {
-      console.error('Error loading data:', error)
+      // Error handling
     }
   }
 

@@ -55,7 +55,7 @@ export default function HomeworkDetailPage() {
         setAnswers(answersData)
       }
     } catch (error) {
-      console.error('Error loading homework data:', error)
+      // Error handling
     } finally {
       setLoading(false)
     }
