@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import BarcodeScanner from './BarcodeScanner'
 
 export default function LoginForm() {
   const router = useRouter()
@@ -9,6 +10,38 @@ export default function LoginForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showScanner, setShowScanner] = useState(false)
+  const loginIdRef = useRef(null)
+  const passwordRef = useRef(null)
+
+  // コンポーネントマウント時にログインIDフィールドにフォーカス
+  useEffect(() => {
+    if (loginIdRef.current) {
+      loginIdRef.current.focus()
+    }
+  }, [])
+
+  const handleLoginIdKeyDown = (e) => {
+    // バーコードリーダーからの入力を検知（Enterキーが押された場合）
+    if (e.key === 'Enter' && loginId.trim()) {
+      e.preventDefault()
+      // パスワードフィールドにフォーカスを移動
+      if (passwordRef.current) {
+        passwordRef.current.focus()
+      }
+    }
+  }
+
+  const handleBarcodeScan = (scannedText) => {
+    setLoginId(scannedText.trim())
+    setShowScanner(false)
+    // パスワードフィールドにフォーカスを移動
+    setTimeout(() => {
+      if (passwordRef.current) {
+        passwordRef.current.focus()
+      }
+    }, 100)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -56,20 +89,35 @@ export default function LoginForm() {
           <label htmlFor="login_id" className="block text-base font-semibold mb-2 text-gray-700">
             ログインID
           </label>
-          <input
-            id="login_id"
-            type="text"
-            value={loginId}
-            onChange={(e) => setLoginId(e.target.value)}
-            required
-            className="w-full px-5 py-3 border-4 border-yellow-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-yellow-200 text-lg"
-          />
+          <div className="relative">
+            <input
+              ref={loginIdRef}
+              id="login_id"
+              type="text"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
+              onKeyDown={handleLoginIdKeyDown}
+              required
+              autoFocus
+              placeholder="バーコードスキャンまたは手入力"
+              className="w-full px-5 py-3 border-4 border-yellow-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-yellow-200 text-lg pr-16"
+            />
+            <button
+              type="button"
+              onClick={() => setShowScanner(true)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-yellow-400 hover:bg-yellow-500 rounded-xl text-white font-bold transition-colors"
+              title="カメラでバーコードをスキャン"
+            >
+              📷
+            </button>
+          </div>
         </div>
         <div>
           <label htmlFor="password" className="block text-base font-semibold mb-2 text-gray-700">
             パスワード
           </label>
           <input
+            ref={passwordRef}
             id="password"
             type="password"
             value={password}
@@ -94,6 +142,12 @@ export default function LoginForm() {
           パスワードを忘れた場合は、先生に聞いてください。
         </p>
       </form>
+      {showScanner && (
+        <BarcodeScanner
+          onScan={handleBarcodeScan}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
     </div>
   )
 }
