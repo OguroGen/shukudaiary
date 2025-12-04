@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { hashPassword } from '@/lib/auth/student'
 import { validateStudentData } from '@/lib/validation/student'
+import { getPlanLimits, getLimitErrorMessage } from '@/lib/plans'
 
 export async function POST(request) {
   try {
@@ -43,15 +44,29 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Teacher not found' }, { status: 404 })
     }
 
-    // Check student count limit (10 for Free plan)
+    // Get school's plan_type
+    const { data: school } = await supabase
+      .from('schools')
+      .select('plan_type')
+      .eq('id', teacher.school_id)
+      .single()
+
+    // Get plan type (default to 'free' if not set)
+    const planType = school?.plan_type || 'free'
+
+    // Check student count limit based on plan
     const { count } = await supabase
       .from('students')
       .select('id', { count: 'exact', head: true })
       .eq('school_id', teacher.school_id)
 
-    if ((count || 0) >= 10) {
+    const currentCount = count || 0
+    const limits = getPlanLimits(planType)
+
+    if (limits.maxStudents !== null && currentCount >= limits.maxStudents) {
+      const errorMessage = getLimitErrorMessage(planType, 'students', currentCount)
       return NextResponse.json(
-        { error: 'Freeプランでは10人まで登録できます' },
+        { error: errorMessage },
         { status: 400 }
       )
     }
