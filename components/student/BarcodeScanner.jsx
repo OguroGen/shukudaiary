@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Html5Qrcode } from 'html5-qrcode'
+import { Html5Qrcode, BarcodeFormat } from 'html5-qrcode'
 
 export default function BarcodeScanner({ onScan, onClose }) {
   const scannerRef = useRef(null)
@@ -32,11 +32,12 @@ export default function BarcodeScanner({ onScan, onClose }) {
         setError('')
         setIsScanning(true)
 
-        // カメラの設定
+        // カメラの設定（CODE39のみをサポート）
         const config = {
           fps: 10,
           qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
+          formatsToSupport: [BarcodeFormat.CODE_39],
         }
 
         await html5QrCode.start(

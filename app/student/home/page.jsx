@@ -172,30 +172,6 @@ export default function StudentHomePage() {
           )}
         </div>
 
-        {/* <div className="bg-white rounded-3xl shadow-xl p-6 mb-6 border-4 border-green-300">
-          <h2 className="text-2xl font-bold mb-6 text-green-600">🎯 自主練習</h2>
-          <div className="space-y-4">
-            <Link
-              href="/student/practice?type=mitori"
-              className="block w-full px-6 py-4 bg-green-400 text-white rounded-2xl hover:bg-green-500 text-center font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
-            >
-              ➕ 見取り算の練習
-            </Link>
-            <Link
-              href="/student/practice?type=mul"
-              className="block w-full px-6 py-4 bg-blue-400 text-white rounded-2xl hover:bg-blue-500 text-center font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
-            >
-              ✖️ かけ算の練習
-            </Link>
-            <Link
-              href="/student/practice?type=div"
-              className="block w-full px-6 py-4 bg-purple-400 text-white rounded-2xl hover:bg-purple-500 text-center font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
-            >
-              ➗ わり算の練習
-            </Link>
-          </div>
-        </div> */}
-
         <div className="bg-white rounded-3xl shadow-xl p-6 border-4 border-gray-300">
           <h2 className="text-2xl font-bold mb-6 text-gray-700">⚙️ アカウント</h2>
           <div className="space-y-4">
