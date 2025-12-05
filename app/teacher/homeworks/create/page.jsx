@@ -26,6 +26,15 @@ function HomeworkCreatePageContent() {
   const [leftDigits, setLeftDigits] = useState(2)
   const [rightDigits, setRightDigits] = useState(1)
   const [rows, setRows] = useState(4)
+  
+  // 種目が変わった時に初期値を調整
+  useEffect(() => {
+    if (type === 'mitori' && leftDigits === 2) {
+      setLeftDigits(3)
+    } else if (type !== 'mitori' && leftDigits === 3 && !selectedPreset) {
+      setLeftDigits(2)
+    }
+  }, [type])
   const [questionCount, setQuestionCount] = useState(5)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -108,7 +117,7 @@ function HomeworkCreatePageContent() {
     const preset = presets.find((p) => p.id === presetId)
     if (preset) {
       setType(preset.type)
-      setLeftDigits(preset.left_digits || 2)
+      setLeftDigits(preset.left_digits || (preset.type === 'mitori' ? 3 : 2))
       setRightDigits(preset.right_digits || 1)
       setRows(preset.rows || 4)
       setQuestionCount(preset.question_count)
@@ -129,11 +138,10 @@ function HomeworkCreatePageContent() {
         leftDigits,
         rightDigits
       )
-    } else if (type === 'mitori' && rows) {
-      const digitsPerRow = leftDigits || 3
+    } else if (type === 'mitori' && rows && leftDigits) {
       generated = generateMitoriQuestions(
         questionCount,
-        digitsPerRow,
+        leftDigits,
         rows
       )
     }
@@ -172,7 +180,7 @@ function HomeworkCreatePageContent() {
     const homeworkData = {
       student_id: selectedStudent,
       type,
-      left_digits: type !== 'mitori' ? leftDigits : null,
+      left_digits: type !== 'mitori' ? leftDigits : leftDigits,
       right_digits: type !== 'mitori' ? rightDigits : null,
       rows: type === 'mitori' ? rows : null,
       question_count: questionCount,
@@ -393,24 +401,49 @@ function HomeworkCreatePageContent() {
           )}
 
           {type === 'mitori' && (
-            <div>
-              <label htmlFor="rows" className="block text-sm font-medium mb-1">
-                行数
-              </label>
-              <input
-                id="rows"
-                type="number"
-                min="2"
-                max="10"
-                value={rows}
-                onChange={(e) => setRows(parseInt(e.target.value, 10))}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              {errors.rows && (
-                <p className="text-red-600 text-sm mt-1">{errors.rows}</p>
-              )}
-            </div>
+            <>
+              <div>
+                <label
+                  htmlFor="left_digits"
+                  className="block text-sm font-medium mb-1"
+                >
+                  桁数
+                </label>
+                <input
+                  id="left_digits"
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={leftDigits}
+                  onChange={(e) => setLeftDigits(parseInt(e.target.value, 10))}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {errors.left_digits && (
+                  <p className="text-red-600 text-sm mt-1">
+                    {errors.left_digits}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="rows" className="block text-sm font-medium mb-1">
+                  行数
+                </label>
+                <input
+                  id="rows"
+                  type="number"
+                  min="2"
+                  max="10"
+                  value={rows}
+                  onChange={(e) => setRows(parseInt(e.target.value, 10))}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {errors.rows && (
+                  <p className="text-red-600 text-sm mt-1">{errors.rows}</p>
+                )}
+              </div>
+            </>
           )}
 
           <div>

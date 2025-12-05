@@ -25,6 +25,13 @@ export async function POST(request) {
       )
     }
 
+    if (question_count < 1 || question_count > 20) {
+      return NextResponse.json(
+        { error: '問題数は1から20の間で入力してください' },
+        { status: 400 }
+      )
+    }
+
     // Get teacher's school_id
     const { data: teacher } = await supabase
       .from('teachers')

@@ -74,11 +74,10 @@ export async function POST(request) {
         homeworkData.left_digits,
         homeworkData.right_digits
       )
-    } else if (homeworkData.type === 'mitori' && homeworkData.rows) {
-      const digitsPerRow = homeworkData.left_digits || 3
+    } else if (homeworkData.type === 'mitori' && homeworkData.rows && homeworkData.left_digits) {
       questions = generateMitoriQuestions(
         homeworkData.question_count,
-        digitsPerRow,
+        homeworkData.left_digits,
         homeworkData.rows
       )
     }

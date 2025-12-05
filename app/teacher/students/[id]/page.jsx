@@ -208,12 +208,22 @@ export default function StudentDetailPage() {
                 } else {
                   questionText = q.numbers?.join(' + ') || ''
                 }
+                const answerDateTime = answer.created_at
+                  ? new Date(answer.created_at).toLocaleString('ja-JP', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })
+                  : ''
                 return (
                   <div
                     key={answer.id || idx}
                     className="p-3 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900"
                   >
                     <div className="text-sm">
+                      {answerDateTime && <span className="font-semibold text-gray-700">{answerDateTime} - </span>}
                       {questionText} → 正答: {answer.correct_answer} / 生徒の答え:{' '}
                       {answer.student_answer}
                     </div>

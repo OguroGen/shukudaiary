@@ -43,9 +43,54 @@ export default function StudentsListPage() {
         .eq('school_id', teacher.school_id)
         .order('created_at', { ascending: false })
 
-      if (!error) {
-        setStudents(data || [])
+      if (error) {
+        console.error('Failed to load students:', error)
+        return
       }
+
+      const students = data || []
+      
+      // Get today's date in YYYY-MM-DD format
+      const today = new Date().toISOString().split('T')[0]
+      
+      // Check for active and finished homeworks for each student
+      const studentsWithHomeworkStatus = await Promise.all(
+        students.map(async (student) => {
+          // Check for active homeworks (期間が今日を含み終了していない = end_date > 今日)
+          const { data: activeHomeworks } = await supabase
+            .from('homeworks')
+            .select('id')
+            .eq('student_id', student.id)
+            .lte('start_date', today)
+            .gt('end_date', today)
+            .limit(1)
+          
+          const hasActiveHomework = (activeHomeworks && activeHomeworks.length > 0) || false
+          
+          // Check for finished homeworks (今日終了した宿題 = end_date = 今日)
+          // ただし、アクティブな宿題がない場合のみチェック
+          let hasFinishedHomework = false
+          if (!hasActiveHomework) {
+            const { data: finishedHomeworks } = await supabase
+              .from('homeworks')
+              .select('id')
+              .eq('student_id', student.id)
+              .lte('start_date', today)
+              .eq('end_date', today)
+              .limit(1)
+            
+            hasFinishedHomework = (finishedHomeworks && finishedHomeworks.length > 0) || false
+          }
+          
+          return {
+            ...student,
+            hasActiveHomework,
+            hasFinishedHomework
+          }
+        })
+      )
+
+      setStudents(studentsWithHomeworkStatus)
     } catch (error) {
       console.error('Failed to load students:', error)
     } finally {
@@ -139,7 +184,21 @@ export default function StudentsListPage() {
                 <tbody>
                   {filteredStudents.map((student) => (
                     <tr key={student.id} className="border-b">
-                      <td className="p-2">{student.nickname}</td>
+                      <td className="p-2">
+                        <div className="flex items-center gap-2">
+                          {student.nickname}
+                          {student.hasActiveHomework && (
+                            <span className="px-2 py-1 bg-yellow-400 text-yellow-900 rounded text-xs font-semibold">
+                              しゅくだいアリー
+                            </span>
+                          )}
+                          {!student.hasActiveHomework && student.hasFinishedHomework && (
+                            <span className="px-2 py-1 bg-gray-400 text-gray-900 rounded text-xs font-semibold">
+                              しゅくだいオワリー
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="p-2">{student.login_id}</td>
                       <td className="p-2">
                         {student.last_activity

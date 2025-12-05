@@ -17,7 +17,7 @@ export default function PresetEditPage() {
   const [leftDigits, setLeftDigits] = useState(2)
   const [rightDigits, setRightDigits] = useState(1)
   const [rows, setRows] = useState(4)
-  const [questionCount, setQuestionCount] = useState(20)
+  const [questionCount, setQuestionCount] = useState(5)
   const [presetCount, setPresetCount] = useState(0)
   const [planType, setPlanType] = useState('free')
   const [errors, setErrors] = useState({})
@@ -40,6 +40,15 @@ export default function PresetEditPage() {
       }
     })
   }, [presetId, isNew, router])
+
+  // 種目が変わった時に初期値を調整
+  useEffect(() => {
+    if (type === 'mitori' && leftDigits === 2) {
+      setLeftDigits(3)
+    } else if (type !== 'mitori' && leftDigits === 3) {
+      setLeftDigits(2)
+    }
+  }, [type])
 
   const loadPresetCount = async (supabase, teacherId) => {
     try {
@@ -86,7 +95,7 @@ export default function PresetEditPage() {
       if (preset) {
         setName(preset.name)
         setType(preset.type)
-        setLeftDigits(preset.left_digits || 2)
+        setLeftDigits(preset.left_digits || (preset.type === 'mitori' ? 3 : 2))
         setRightDigits(preset.right_digits || 1)
         setRows(preset.rows || 4)
         setQuestionCount(preset.question_count)
@@ -115,6 +124,11 @@ export default function PresetEditPage() {
       return
     }
 
+    if (questionCount < 1 || questionCount > 20) {
+      setErrors({ questionCount: '問題数は1から20の間で入力してください' })
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -129,7 +143,7 @@ export default function PresetEditPage() {
         body: JSON.stringify({
           name,
           type,
-          left_digits: type !== 'mitori' ? leftDigits : null,
+          left_digits: type !== 'mitori' ? leftDigits : leftDigits,
           right_digits: type !== 'mitori' ? rightDigits : null,
           rows: type === 'mitori' ? rows : null,
           question_count: questionCount,
@@ -289,21 +303,41 @@ export default function PresetEditPage() {
           )}
 
           {type === 'mitori' && (
-            <div>
-              <label htmlFor="rows" className="block text-sm font-medium mb-1">
-                行数
-              </label>
-              <input
-                id="rows"
-                type="number"
-                min="2"
-                max="10"
-                value={rows}
-                onChange={(e) => setRows(parseInt(e.target.value, 10))}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <>
+              <div>
+                <label
+                  htmlFor="left_digits"
+                  className="block text-sm font-medium mb-1"
+                >
+                  桁数
+                </label>
+                <input
+                  id="left_digits"
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={leftDigits}
+                  onChange={(e) => setLeftDigits(parseInt(e.target.value, 10))}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="rows" className="block text-sm font-medium mb-1">
+                  行数
+                </label>
+                <input
+                  id="rows"
+                  type="number"
+                  min="2"
+                  max="10"
+                  value={rows}
+                  onChange={(e) => setRows(parseInt(e.target.value, 10))}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </>
           )}
 
           <div>
@@ -317,7 +351,7 @@ export default function PresetEditPage() {
               id="question_count"
               type="number"
               min="1"
-              max="100"
+              max="20"
               value={questionCount}
               onChange={(e) =>
                 setQuestionCount(parseInt(e.target.value, 10))
@@ -325,6 +359,9 @@ export default function PresetEditPage() {
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            {errors.questionCount && (
+              <p className="text-red-600 text-sm mt-1">{errors.questionCount}</p>
+            )}
           </div>
 
           <div className="flex gap-4">
