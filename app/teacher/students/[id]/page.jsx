@@ -14,6 +14,7 @@ export default function StudentDetailPage() {
   const [homeworks, setHomeworks] = useState([])
   const [wrongAnswers, setWrongAnswers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [resettingPassword, setResettingPassword] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -76,6 +77,31 @@ export default function StudentDetailPage() {
     }
   }
 
+  const handleResetPassword = async () => {
+    if (!confirm('パスワードをリセットしますか？')) return
+
+    setResettingPassword(true)
+    try {
+      const response = await fetch('/api/teacher/students/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: studentId }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        alert(`新しいパスワード: ${data.new_password}`)
+      } else {
+        alert(data.error || 'パスワードリセットに失敗しました')
+      }
+    } catch (error) {
+      alert('パスワードリセットに失敗しました')
+    } finally {
+      setResettingPassword(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -115,6 +141,13 @@ export default function StudentDetailPage() {
               >
                 生徒一覧に戻る
               </Link>
+              <button
+                onClick={handleResetPassword}
+                disabled={resettingPassword}
+                className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {resettingPassword ? 'リセット中...' : 'パスワードリセット'}
+              </button>
             </div>
           </div>
         </div>

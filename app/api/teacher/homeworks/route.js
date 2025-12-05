@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateHomeworkData } from '@/lib/validation/homework'
+import {
+  generateMultiplicationQuestions,
+} from '@/lib/problems/multiplication'
+import {
+  generateDivisionQuestions,
+} from '@/lib/problems/division'
+import {
+  generateMitoriQuestions,
+} from '@/lib/problems/mitori'
 
 export async function POST(request) {
   try {
@@ -51,6 +60,29 @@ export async function POST(request) {
       )
     }
 
+    // Generate questions
+    let questions = []
+    if (homeworkData.type === 'mul' && homeworkData.left_digits && homeworkData.right_digits) {
+      questions = generateMultiplicationQuestions(
+        homeworkData.question_count,
+        homeworkData.left_digits,
+        homeworkData.right_digits
+      )
+    } else if (homeworkData.type === 'div' && homeworkData.left_digits && homeworkData.right_digits) {
+      questions = generateDivisionQuestions(
+        homeworkData.question_count,
+        homeworkData.left_digits,
+        homeworkData.right_digits
+      )
+    } else if (homeworkData.type === 'mitori' && homeworkData.rows) {
+      const digitsPerRow = homeworkData.left_digits || 3
+      questions = generateMitoriQuestions(
+        homeworkData.question_count,
+        digitsPerRow,
+        homeworkData.rows
+      )
+    }
+
     // Create homework
     const { data: homework, error } = await supabase
       .from('homeworks')
@@ -63,6 +95,7 @@ export async function POST(request) {
         question_count: homeworkData.question_count,
         start_date: homeworkData.start_date,
         end_date: homeworkData.end_date,
+        questions: questions,
       })
       .select()
       .single()

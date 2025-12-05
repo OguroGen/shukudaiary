@@ -7,8 +7,16 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function HomeworksListPage() {
   const router = useRouter()
+  const [allHomeworks, setAllHomeworks] = useState([])
   const [homeworks, setHomeworks] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showAll, setShowAll] = useState(false)
+  const [selectedStudent, setSelectedStudent] = useState('')
+  const [selectedType, setSelectedType] = useState('')
+  const [selectedStatus, setSelectedStatus] = useState('')
+  const [sortBy, setSortBy] = useState('created_at')
+  const [sortOrder, setSortOrder] = useState('desc')
+  const [students, setStudents] = useState([])
 
   useEffect(() => {
     const supabase = createClient()
@@ -35,19 +43,21 @@ export default function HomeworksListPage() {
       if (!teacher) return
 
       // Get all students in school
-      const { data: students } = await supabase
+      const { data: studentsData } = await supabase
         .from('students')
-        .select('id')
+        .select('id, nickname, login_id')
         .eq('school_id', teacher.school_id)
+        .order('nickname')
 
-      if (!students || students.length === 0) {
+      if (!studentsData || studentsData.length === 0) {
         setLoading(false)
         return
       }
 
-      const studentIds = students.map((s) => s.id)
+      setStudents(studentsData)
+      const studentIds = studentsData.map((s) => s.id)
 
-      // Get homeworks
+      // Get all homeworks
       const { data } = await supabase
         .from('homeworks')
         .select('*, students(id, nickname)')
@@ -55,12 +65,39 @@ export default function HomeworksListPage() {
         .order('created_at', { ascending: false })
 
       if (data) {
-        setHomeworks(
-          data.map((hw) => ({
+        // Get answer counts for each homework
+        const homeworkIds = data.map((h) => h.id)
+        const { data: answerCounts } = await supabase
+          .from('answers')
+          .select('homework_id')
+          .in('homework_id', homeworkIds)
+
+        // Count answers per homework
+        const answerCountMap = new Map()
+        if (answerCounts) {
+          answerCounts.forEach((answer) => {
+            if (answer.homework_id) {
+              const count = answerCountMap.get(answer.homework_id) || 0
+              answerCountMap.set(answer.homework_id, count + 1)
+            }
+          })
+        }
+
+        const formatted = data.map((hw) => {
+          const answerCount = answerCountMap.get(hw.id) || 0
+          return {
             ...hw,
             student: hw.students,
-          }))
-        )
+            answerCount: answerCount,
+          }
+        })
+        setAllHomeworks(formatted)
+        // Initial filter: show only incomplete (not completed)
+        const filtered = formatted.filter((hw) => {
+          const status = getCompletionStatus(hw)
+          return status !== 'completed'
+        })
+        setHomeworks(filtered)
       }
     } catch (error) {
       // Error handling
@@ -69,16 +106,132 @@ export default function HomeworksListPage() {
     }
   }
 
-  const getStatus = (homework) => {
-    const today = new Date().toISOString().split('T')[0]
-    if (homework.end_date < today) {
-      return 'Expired'
+  const getCompletionStatus = (homework) => {
+    const answerCount = homework.answerCount || 0
+    const questionCount = homework.question_count || 0
+
+    if (answerCount === 0) {
+      return 'not_started'
+    } else if (answerCount < questionCount) {
+      return 'in_progress'
+    } else {
+      return 'completed'
     }
-    if (homework.start_date > today) {
-      return 'Not started'
-    }
-    return 'Active'
   }
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'not_started':
+        return '未解答'
+      case 'in_progress':
+        return '解答中'
+      case 'completed':
+        return '完了'
+      default:
+        return '不明'
+    }
+  }
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'not_started':
+        return 'text-gray-600'
+      case 'in_progress':
+        return 'text-yellow-600'
+      case 'completed':
+        return 'text-green-600'
+      default:
+        return 'text-gray-600'
+    }
+  }
+
+  // Apply filters and sorting
+  useEffect(() => {
+    let filtered = [...allHomeworks]
+
+    // Status filter (initial: show only incomplete)
+    if (!showAll) {
+      filtered = filtered.filter((hw) => {
+        const status = getCompletionStatus(hw)
+        return status !== 'completed'
+      })
+    }
+
+    // Student filter
+    if (selectedStudent) {
+      filtered = filtered.filter((hw) => hw.student_id === selectedStudent)
+    }
+
+    // Type filter
+    if (selectedType) {
+      filtered = filtered.filter((hw) => hw.type === selectedType)
+    }
+
+    // Status filter (when showAll is true)
+    if (showAll && selectedStatus) {
+      filtered = filtered.filter((hw) => {
+        const status = getCompletionStatus(hw)
+        return status === selectedStatus
+      })
+    }
+
+    // Sorting
+    filtered.sort((a, b) => {
+      let aValue, bValue
+
+      switch (sortBy) {
+        case 'start_date':
+          aValue = a.start_date
+          bValue = b.start_date
+          break
+        case 'end_date':
+          aValue = a.end_date
+          bValue = b.end_date
+          break
+        case 'created_at':
+          aValue = a.created_at
+          bValue = b.created_at
+          break
+        case 'student':
+          aValue = a.student?.nickname || ''
+          bValue = b.student?.nickname || ''
+          break
+        case 'type':
+          aValue = a.type
+          bValue = b.type
+          break
+        default:
+          aValue = a.created_at
+          bValue = b.created_at
+      }
+
+      if (sortBy === 'student' || sortBy === 'type') {
+        // String comparison
+        if (sortOrder === 'asc') {
+          return aValue.localeCompare(bValue)
+        } else {
+          return bValue.localeCompare(aValue)
+        }
+      } else {
+        // Date comparison
+        if (sortOrder === 'asc') {
+          return new Date(aValue) - new Date(bValue)
+        } else {
+          return new Date(bValue) - new Date(aValue)
+        }
+      }
+    })
+
+    setHomeworks(filtered)
+  }, [
+    allHomeworks,
+    showAll,
+    selectedStudent,
+    selectedType,
+    selectedStatus,
+    sortBy,
+    sortOrder,
+  ])
 
   if (loading) {
     return (
@@ -109,6 +262,97 @@ export default function HomeworksListPage() {
               </Link>
             </div>
           </div>
+
+          {/* Filters and Sort */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">表示</label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={showAll}
+                  onChange={(e) => setShowAll(e.target.checked)}
+                  className="mr-2"
+                />
+                全部表示
+              </label>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">生徒</label>
+              <select
+                value={selectedStudent}
+                onChange={(e) => setSelectedStudent(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="">すべて</option>
+                {students.map((student) => (
+                  <option key={student.id} value={student.id}>
+                    {student.nickname}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">種目</label>
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="">すべて</option>
+                <option value="mul">かけ算</option>
+                <option value="div">わり算</option>
+                <option value="mitori">見取り算</option>
+              </select>
+            </div>
+
+            {showAll && (
+              <div>
+                <label className="block text-sm font-medium mb-1">状態</label>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="">すべて</option>
+                  <option value="not_started">未解答</option>
+                  <option value="in_progress">解答中</option>
+                  <option value="completed">完了</option>
+                </select>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">ソート</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="created_at">作成日</option>
+                <option value="start_date">開始日</option>
+                <option value="end_date">終了日</option>
+                <option value="student">生徒名</option>
+                <option value="type">種目</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">順序</label>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="desc">降順</option>
+                <option value="asc">昇順</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
@@ -123,13 +367,12 @@ export default function HomeworksListPage() {
                     : homework.type === 'div'
                     ? 'わり算'
                     : '見取り算'
-                const status = getStatus(homework)
-                const statusText =
-                  status === 'Active'
-                    ? '期間内'
-                    : status === 'Expired'
-                    ? '期限切れ'
-                    : '未開始'
+                const status = getCompletionStatus(homework)
+                const statusText = getStatusText(status)
+                const statusColor = getStatusColor(status)
+                const answerCount = homework.answerCount || 0
+                const questionCount = homework.question_count || 0
+
                 return (
                   <div
                     key={homework.id}
@@ -147,17 +390,14 @@ export default function HomeworksListPage() {
                         </p>
                         <p className="text-sm">
                           状態:{' '}
-                          <span
-                            className={
-                              status === 'Active'
-                                ? 'text-green-600'
-                                : status === 'Expired'
-                                ? 'text-red-600'
-                                : 'text-gray-600'
-                            }
-                          >
+                          <span className={statusColor}>
                             {statusText}
                           </span>
+                          {status === 'in_progress' && (
+                            <span className="text-gray-500 ml-2">
+                              ({answerCount} / {questionCount})
+                            </span>
+                          )}
                         </p>
                       </div>
                       <Link

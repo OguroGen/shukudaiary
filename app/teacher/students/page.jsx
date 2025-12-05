@@ -10,6 +10,7 @@ export default function StudentsListPage() {
   const [students, setStudents] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
+  const [resettingPassword, setResettingPassword] = useState(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -55,6 +56,7 @@ export default function StudentsListPage() {
   const handleResetPassword = async (studentId) => {
     if (!confirm('パスワードをリセットしますか？')) return
 
+    setResettingPassword(studentId)
     try {
       const response = await fetch('/api/teacher/students/reset-password', {
         method: 'POST',
@@ -71,14 +73,15 @@ export default function StudentsListPage() {
       }
     } catch (error) {
       alert('パスワードリセットに失敗しました')
+    } finally {
+      setResettingPassword(null)
     }
   }
 
   const filteredStudents = students.filter(
     (student) =>
       student.nickname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.login_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.id.toLowerCase().includes(searchTerm.toLowerCase())
+      student.login_id.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   if (loading) {
@@ -112,7 +115,7 @@ export default function StudentsListPage() {
           </div>
           <input
             type="text"
-            placeholder="ニックネームまたはIDで検索"
+            placeholder="ニックネームまたはログインIDで検索"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -127,7 +130,6 @@ export default function StudentsListPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-2">ID</th>
                     <th className="text-left p-2">ニックネーム</th>
                     <th className="text-left p-2">ログインID</th>
                     <th className="text-left p-2">最終活動日</th>
@@ -137,7 +139,6 @@ export default function StudentsListPage() {
                 <tbody>
                   {filteredStudents.map((student) => (
                     <tr key={student.id} className="border-b">
-                      <td className="p-2">{student.id.slice(0, 8)}</td>
                       <td className="p-2">{student.nickname}</td>
                       <td className="p-2">{student.login_id}</td>
                       <td className="p-2">
@@ -153,12 +154,12 @@ export default function StudentsListPage() {
                           >
                             詳細
                           </Link>
-                          <button
-                            onClick={() => handleResetPassword(student.id)}
-                            className="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm"
+                          <Link
+                            href={`/teacher/homeworks/create?student_id=${student.id}`}
+                            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
                           >
-                            パスワードリセット
-                          </button>
+                            宿題を作成
+                          </Link>
                         </div>
                       </td>
                     </tr>

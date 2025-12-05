@@ -4,15 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import NumericKeypad from '@/components/student/NumericKeypad'
 import QuestionDisplay from '@/components/student/QuestionDisplay'
-import {
-  generateMultiplicationQuestions,
-} from '@/lib/problems/multiplication'
-import {
-  generateDivisionQuestions,
-} from '@/lib/problems/division'
-import {
-  generateMitoriQuestions,
-} from '@/lib/problems/mitori'
 
 export default function HomeworkQuizPage() {
   const router = useRouter()
@@ -44,7 +35,13 @@ export default function HomeworkQuizPage() {
           router.push('/student/home')
         } else {
           setHomework(data.homework)
-          generateQuestions(data.homework)
+          // Use questions from database
+          if (data.homework.questions && Array.isArray(data.homework.questions)) {
+            setQuestions(data.homework.questions)
+          } else {
+            // Fallback: if questions don't exist, redirect to home
+            router.push('/student/home')
+          }
         }
       })
       .catch(() => {
@@ -52,33 +49,6 @@ export default function HomeworkQuizPage() {
       })
       .finally(() => setLoading(false))
   }, [homeworkId, router])
-
-  const generateQuestions = (hw) => {
-    let generated = []
-
-    if (hw.type === 'mul' && hw.left_digits && hw.right_digits) {
-      generated = generateMultiplicationQuestions(
-        hw.question_count,
-        hw.left_digits,
-        hw.right_digits
-      )
-    } else if (hw.type === 'div' && hw.left_digits && hw.right_digits) {
-      generated = generateDivisionQuestions(
-        hw.question_count,
-        hw.left_digits,
-        hw.right_digits
-      )
-    } else if (hw.type === 'mitori' && hw.rows) {
-      const digitsPerRow = hw.left_digits || 3
-      generated = generateMitoriQuestions(
-        hw.question_count,
-        digitsPerRow,
-        hw.rows
-      )
-    }
-
-    setQuestions(generated)
-  }
 
   const handleNumberClick = (num) => {
     setCurrentAnswer((prev) => prev + num.toString())

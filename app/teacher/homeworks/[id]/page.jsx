@@ -14,6 +14,9 @@ export default function HomeworkDetailPage() {
   const [studentName, setStudentName] = useState('')
   const [answers, setAnswers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [editingQuestions, setEditingQuestions] = useState([])
+  const [isEditing, setIsEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -41,6 +44,10 @@ export default function HomeworkDetailPage() {
         setHomework(homeworkData)
         if (homeworkData.students) {
           setStudentName(homeworkData.students.nickname)
+        }
+        // Initialize editing questions
+        if (homeworkData.questions) {
+          setEditingQuestions([...homeworkData.questions])
         }
       }
 
@@ -97,6 +104,67 @@ export default function HomeworkDetailPage() {
     }
   }
 
+  const formatQuestionFromObject = (question) => {
+    if (question.type === 'mul') {
+      return `${question.left} × ${question.right} = ${question.answer}`
+    } else if (question.type === 'div') {
+      return `${question.dividend} ÷ ${question.divisor} = ${question.answer}`
+    } else {
+      return `${question.numbers?.join(' + ')} = ${question.answer}`
+    }
+  }
+
+  const handleQuestionEdit = (index, field, value) => {
+    const updated = [...editingQuestions]
+    if (updated[index]) {
+      if (field === 'left' || field === 'right' || field === 'dividend' || field === 'divisor') {
+        updated[index][field] = parseInt(value, 10) || 0
+        // Recalculate answer
+        if (homework.type === 'mul') {
+          updated[index].answer = updated[index].left * updated[index].right
+        } else if (homework.type === 'div') {
+          updated[index].answer = Math.floor(updated[index].dividend / updated[index].divisor)
+        }
+      } else if (field.startsWith('numbers_')) {
+        const numValue = parseInt(value, 10) || 0
+        const numIndex = parseInt(field.split('_')[1], 10)
+        if (updated[index].numbers && updated[index].numbers[numIndex] !== undefined) {
+          updated[index].numbers[numIndex] = numValue
+          updated[index].answer = updated[index].numbers.reduce((sum, num) => sum + num, 0)
+        }
+      }
+      setEditingQuestions(updated)
+    }
+  }
+
+  const handleSaveQuestions = async () => {
+    setSaving(true)
+    try {
+      const response = await fetch(`/api/teacher/homeworks/${homeworkId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questions: editingQuestions }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        alert(data.error || '問題の更新に失敗しました')
+        return
+      }
+
+      setHomework({ ...homework, questions: editingQuestions })
+      setIsEditing(false)
+      alert('問題を更新しました')
+    } catch (error) {
+      alert('問題の更新に失敗しました')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const canEdit = answers.length === 0
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
       <div className="max-w-6xl mx-auto">
@@ -130,17 +198,158 @@ export default function HomeworkDetailPage() {
               <span className="font-semibold">種目:</span> {typeName}
             </div>
             <div>
-              <span className="font-semibold">スコア:</span> {correctCount} /{' '}
-              {answers.length}
+              <span className="font-semibold">問題数:</span> {homework.question_count}
             </div>
-            {answers.length > 0 && (
-              <div>
-                <span className="font-semibold">解答日時:</span>{' '}
-                {new Date(answers[0].created_at).toLocaleString('ja-JP')}
-              </div>
+            {answers.length > 0 ? (
+              <>
+                <div>
+                  <span className="font-semibold">スコア:</span> {correctCount} /{' '}
+                  {answers.length}
+                </div>
+                <div>
+                  <span className="font-semibold">解答日時:</span>{' '}
+                  {new Date(answers[0].created_at).toLocaleString('ja-JP')}
+                </div>
+              </>
+            ) : (
+              <div className="text-gray-600">未解答</div>
             )}
           </div>
         </div>
+
+        {homework.questions && homework.questions.length > 0 && (
+          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">問題一覧</h2>
+              {canEdit && (
+                <div className="flex gap-2">
+                  {!isEditing ? (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      編集
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleSaveQuestions}
+                        disabled={saving}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {saving ? '保存中...' : '保存'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingQuestions([...homework.questions])
+                          setIsEditing(false)
+                        }}
+                        className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+                      >
+                        キャンセル
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              {(isEditing ? editingQuestions : homework.questions).map(
+                (question, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 rounded p-3 bg-gray-50 dark:bg-zinc-800"
+                  >
+                    {isEditing && canEdit ? (
+                      <>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-semibold text-sm">問題 {index + 1}:</span>
+                        </div>
+                        {question.type === 'mul' && (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              value={question.left}
+                              onChange={(e) =>
+                                handleQuestionEdit(index, 'left', e.target.value)
+                              }
+                              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                            />
+                            <span>×</span>
+                            <input
+                              type="number"
+                              value={question.right}
+                              onChange={(e) =>
+                                handleQuestionEdit(index, 'right', e.target.value)
+                              }
+                              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                            />
+                            <span>=</span>
+                            <span className="font-semibold">{question.answer}</span>
+                          </div>
+                        )}
+                        {question.type === 'div' && (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              value={question.dividend}
+                              onChange={(e) =>
+                                handleQuestionEdit(index, 'dividend', e.target.value)
+                              }
+                              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                            />
+                            <span>÷</span>
+                            <input
+                              type="number"
+                              value={question.divisor}
+                              onChange={(e) =>
+                                handleQuestionEdit(index, 'divisor', e.target.value)
+                              }
+                              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                            />
+                            <span>=</span>
+                            <span className="font-semibold">{question.answer}</span>
+                          </div>
+                        )}
+                        {question.type === 'mitori' && (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {question.numbers?.map((num, numIndex) => (
+                                <div key={numIndex} className="flex items-center gap-1">
+                                  <input
+                                    type="number"
+                                    value={num}
+                                    onChange={(e) =>
+                                      handleQuestionEdit(
+                                        index,
+                                        `numbers_${numIndex}`,
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                  />
+                                  {numIndex < question.numbers.length - 1 && (
+                                    <span>+</span>
+                                  )}
+                                </div>
+                              ))}
+                              <span>=</span>
+                              <span className="font-semibold">{question.answer}</span>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="text-sm">
+                        問題 {index + 1}: {formatQuestionFromObject(question)}
+                      </div>
+                    )}
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        )}
 
         {answers.length > 0 && (
           <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">

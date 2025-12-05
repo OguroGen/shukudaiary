@@ -1,13 +1,23 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { validateHomeworkData } from '@/lib/validation/homework'
+import {
+  generateMultiplicationQuestions,
+} from '@/lib/problems/multiplication'
+import {
+  generateDivisionQuestions,
+} from '@/lib/problems/division'
+import {
+  generateMitoriQuestions,
+} from '@/lib/problems/mitori'
 
-export default function HomeworkCreatePage() {
+function HomeworkCreatePageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [students, setStudents] = useState([])
   const [presets, setPresets] = useState([])
   const [selectedStudent, setSelectedStudent] = useState('')
@@ -21,6 +31,8 @@ export default function HomeworkCreatePage() {
   const [endDate, setEndDate] = useState('')
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
+  const [previewQuestions, setPreviewQuestions] = useState([])
+  const [showPreview, setShowPreview] = useState(false)
 
   // Initialize dates to today
   useEffect(() => {
@@ -41,6 +53,18 @@ export default function HomeworkCreatePage() {
       loadData(supabase, session.user.id)
     })
   }, [router])
+
+  // URLパラメータからstudent_idを取得して自動選択
+  useEffect(() => {
+    const studentIdFromUrl = searchParams.get('student_id')
+    if (studentIdFromUrl && students.length > 0) {
+      // 生徒が存在するか確認
+      const studentExists = students.some((s) => s.id === studentIdFromUrl)
+      if (studentExists) {
+        setSelectedStudent(studentIdFromUrl)
+      }
+    }
+  }, [searchParams, students])
 
   const loadData = async (supabase, teacherId) => {
     try {
@@ -91,6 +115,66 @@ export default function HomeworkCreatePage() {
     }
   }
 
+  const generatePreviewQuestions = () => {
+    let generated = []
+    if (type === 'mul' && leftDigits && rightDigits) {
+      generated = generateMultiplicationQuestions(
+        questionCount,
+        leftDigits,
+        rightDigits
+      )
+    } else if (type === 'div' && leftDigits && rightDigits) {
+      generated = generateDivisionQuestions(
+        questionCount,
+        leftDigits,
+        rightDigits
+      )
+    } else if (type === 'mitori' && rows) {
+      const digitsPerRow = leftDigits || 3
+      generated = generateMitoriQuestions(
+        questionCount,
+        digitsPerRow,
+        rows
+      )
+    }
+    setPreviewQuestions(generated)
+    setShowPreview(true)
+  }
+
+  const handleQuestionEdit = (index, field, value) => {
+    const updated = [...previewQuestions]
+    if (updated[index]) {
+      if (field === 'left' || field === 'right' || field === 'dividend' || field === 'divisor') {
+        updated[index][field] = parseInt(value, 10) || 0
+        // Recalculate answer
+        if (type === 'mul') {
+          updated[index].answer = updated[index].left * updated[index].right
+        } else if (type === 'div') {
+          updated[index].answer = Math.floor(updated[index].dividend / updated[index].divisor)
+        }
+      } else if (field.startsWith('numbers_')) {
+        // For mitori, update numbers array
+        const numValue = parseInt(value, 10) || 0
+        const numIndex = parseInt(field.split('_')[1], 10)
+        if (updated[index].numbers && updated[index].numbers[numIndex] !== undefined) {
+          updated[index].numbers[numIndex] = numValue
+          updated[index].answer = updated[index].numbers.reduce((sum, num) => sum + num, 0)
+        }
+      }
+      setPreviewQuestions(updated)
+    }
+  }
+
+  const formatQuestion = (question, index) => {
+    if (question.type === 'mul') {
+      return `${question.left} × ${question.right} = ${question.answer}`
+    } else if (question.type === 'div') {
+      return `${question.dividend} ÷ ${question.divisor} = ${question.answer}`
+    } else {
+      return `${question.numbers?.join(' + ')} = ${question.answer}`
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setErrors({})
@@ -126,6 +210,15 @@ export default function HomeworkCreatePage() {
       if (!response.ok) {
         setErrors({ general: data.error || '宿題の作成に失敗しました' })
         return
+      }
+
+      // If preview questions exist, update them
+      if (previewQuestions.length > 0 && data.homework) {
+        await fetch(`/api/teacher/homeworks/${data.homework.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questions: previewQuestions }),
+        })
       }
 
       router.push('/teacher/homeworks')
@@ -391,6 +484,118 @@ export default function HomeworkCreatePage() {
 
           <div className="flex gap-4">
             <button
+              type="button"
+              onClick={generatePreviewQuestions}
+              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              問題をプレビュー
+            </button>
+          </div>
+
+          {showPreview && previewQuestions.length > 0 && (
+            <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 dark:bg-zinc-800">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">問題プレビュー</h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    generatePreviewQuestions()
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                >
+                  再生成
+                </button>
+              </div>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {previewQuestions.map((question, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 rounded p-3 bg-white dark:bg-zinc-900"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-semibold text-sm">問題 {index + 1}:</span>
+                    </div>
+                    {question.type === 'mul' && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={question.left}
+                          onChange={(e) =>
+                            handleQuestionEdit(index, 'left', e.target.value)
+                          }
+                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                        />
+                        <span>×</span>
+                        <input
+                          type="number"
+                          value={question.right}
+                          onChange={(e) =>
+                            handleQuestionEdit(index, 'right', e.target.value)
+                          }
+                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                        />
+                        <span>=</span>
+                        <span className="font-semibold">{question.answer}</span>
+                      </div>
+                    )}
+                    {question.type === 'div' && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={question.dividend}
+                          onChange={(e) =>
+                            handleQuestionEdit(index, 'dividend', e.target.value)
+                          }
+                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                        />
+                        <span>÷</span>
+                        <input
+                          type="number"
+                          value={question.divisor}
+                          onChange={(e) =>
+                            handleQuestionEdit(index, 'divisor', e.target.value)
+                          }
+                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                        />
+                        <span>=</span>
+                        <span className="font-semibold">{question.answer}</span>
+                      </div>
+                    )}
+                    {question.type === 'mitori' && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {question.numbers?.map((num, numIndex) => (
+                            <div key={numIndex} className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                value={num}
+                                onChange={(e) =>
+                                  handleQuestionEdit(
+                                    index,
+                                    `numbers_${numIndex}`,
+                                    e.target.value
+                                  )
+                                }
+                                className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                              />
+                              {numIndex < question.numbers.length - 1 && (
+                                <span>+</span>
+                              )}
+                            </div>
+                          ))}
+                          <span>=</span>
+                          <span className="font-semibold">{question.answer}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-4">
+            <button
               type="submit"
               disabled={loading}
               className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -407,6 +612,18 @@ export default function HomeworkCreatePage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function HomeworkCreatePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <div>読み込み中...</div>
+      </div>
+    }>
+      <HomeworkCreatePageContent />
+    </Suspense>
   )
 }
 
