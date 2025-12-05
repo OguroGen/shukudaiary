@@ -47,7 +47,7 @@ export default function StudentsListPage() {
         setStudents(data || [])
       }
     } catch (error) {
-      // Error handling
+      console.error('Failed to load students:', error)
     } finally {
       setLoading(false)
     }

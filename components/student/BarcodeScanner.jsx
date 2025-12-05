@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Html5Qrcode, BarcodeFormat } from 'html5-qrcode'
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 
 export default function BarcodeScanner({ onScan, onClose }) {
   const scannerRef = useRef(null)
@@ -37,7 +37,7 @@ export default function BarcodeScanner({ onScan, onClose }) {
           fps: 10,
           qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
-          formatsToSupport: [BarcodeFormat.CODE_39],
+          formatsToSupport: [Html5QrcodeSupportedFormats.CODE_39],
         }
 
         await html5QrCode.start(

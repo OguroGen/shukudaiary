@@ -84,7 +84,7 @@ export default function LoginForm() {
       <h2 className="text-xl font-semibold mb-6 text-center text-gray-700">
         ログイン
       </h2>
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
         <div>
           <label htmlFor="login_id" className="block text-base font-semibold mb-2 text-gray-700">
             ログインID
@@ -99,6 +99,7 @@ export default function LoginForm() {
               onKeyDown={handleLoginIdKeyDown}
               required
               autoFocus
+              autoComplete="off"
               placeholder="バーコードスキャンまたは手入力"
               className="w-full px-5 py-3 border-4 border-yellow-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-yellow-200 text-lg pr-16"
             />
@@ -123,6 +124,7 @@ export default function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            autoComplete="new-password"
             className="w-full px-5 py-3 border-4 border-yellow-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-yellow-200 text-lg"
           />
         </div>

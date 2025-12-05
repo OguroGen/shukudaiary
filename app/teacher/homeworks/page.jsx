@@ -100,7 +100,7 @@ export default function HomeworksListPage() {
         setHomeworks(filtered)
       }
     } catch (error) {
-      // Error handling
+      console.error('Failed to load homeworks:', error)
     } finally {
       setLoading(false)
     }

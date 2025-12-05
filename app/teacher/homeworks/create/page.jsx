@@ -99,7 +99,7 @@ function HomeworkCreatePageContent() {
         setPresets(presetsData)
       }
     } catch (error) {
-      // Error handling
+      console.error('Failed to load data:', error)
     }
   }
 
@@ -165,16 +165,6 @@ function HomeworkCreatePageContent() {
     }
   }
 
-  const formatQuestion = (question, index) => {
-    if (question.type === 'mul') {
-      return `${question.left} × ${question.right} = ${question.answer}`
-    } else if (question.type === 'div') {
-      return `${question.dividend} ÷ ${question.divisor} = ${question.answer}`
-    } else {
-      return `${question.numbers?.join(' + ')} = ${question.answer}`
-    }
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     setErrors({})
@@ -214,11 +204,18 @@ function HomeworkCreatePageContent() {
 
       // If preview questions exist, update them
       if (previewQuestions.length > 0 && data.homework) {
-        await fetch(`/api/teacher/homeworks/${data.homework.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ questions: previewQuestions }),
-        })
+        try {
+          const updateResponse = await fetch(`/api/teacher/homeworks/${data.homework.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ questions: previewQuestions }),
+          })
+          if (!updateResponse.ok) {
+            console.error('Failed to update preview questions')
+          }
+        } catch (updateError) {
+          console.error('Error updating preview questions:', updateError)
+        }
       }
 
       router.push('/teacher/homeworks')
@@ -423,12 +420,12 @@ function HomeworkCreatePageContent() {
             >
               問題数
             </label>
-            <input
-              id="question_count"
-              type="number"
-              min="1"
-              max="20"
-              value={questionCount}
+              <input
+                id="question_count"
+                type="number"
+                min="1"
+                max="100"
+                value={questionCount}
               onChange={(e) =>
                 setQuestionCount(parseInt(e.target.value, 10))
               }

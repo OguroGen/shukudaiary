@@ -76,22 +76,29 @@ export default function HomeworkQuizPage() {
     const studentId = localStorage.getItem('student_id')
     const token = localStorage.getItem('student_token')
     if (studentId && token) {
-      await fetch('/api/student/answer', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          homework_id: homeworkId,
-          student_id: studentId,
-          question: question,
-          correct_answer: correctAnswer,
-          student_answer: studentAnswer,
-          is_correct: isCorrect,
-          question_index: currentIndex,
-        }),
-      })
+      try {
+        const response = await fetch('/api/student/answer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            homework_id: homeworkId,
+            student_id: studentId,
+            question: question,
+            correct_answer: correctAnswer,
+            student_answer: studentAnswer,
+            is_correct: isCorrect,
+            question_index: currentIndex,
+          }),
+        })
+        if (!response.ok) {
+          console.error('Failed to save answer')
+        }
+      } catch (error) {
+        console.error('Error saving answer:', error)
+      }
     }
 
     if (currentIndex < questions.length - 1) {
@@ -127,15 +134,13 @@ export default function HomeworkQuizPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-xl p-6 mb-6 border-4 border-yellow-300">
+        <div className="bg-white rounded-3xl shadow-xl p-6 border-4 border-green-300">
           <QuestionDisplay
             type={homework.type}
             question={currentQuestion}
             currentAnswer={currentAnswer}
           />
-        </div>
 
-        <div className="bg-white rounded-3xl shadow-xl p-6 border-4 border-green-300">
           <NumericKeypad
             onNumberClick={handleNumberClick}
             onClear={handleClear}

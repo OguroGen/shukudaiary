@@ -25,6 +25,13 @@ export async function PUT(request, { params }) {
       )
     }
 
+    if (questions.length === 0) {
+      return NextResponse.json(
+        { error: 'questions array cannot be empty' },
+        { status: 400 }
+      )
+    }
+
     // Get teacher's school_id
     const { data: teacher } = await supabase
       .from('teachers')
@@ -71,10 +78,13 @@ export async function PUT(request, { params }) {
       )
     }
 
-    // Update homework questions
+    // Update homework questions and question_count to match
     const { data: updatedHomework, error } = await supabase
       .from('homeworks')
-      .update({ questions: questions })
+      .update({ 
+        questions: questions,
+        question_count: questions.length
+      })
       .eq('id', homeworkId)
       .select()
       .single()

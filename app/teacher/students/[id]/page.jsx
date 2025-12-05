@@ -71,7 +71,7 @@ export default function StudentDetailPage() {
         setWrongAnswers(wrongAnswersData)
       }
     } catch (error) {
-      // Error handling
+      console.error('Failed to load student data:', error)
     } finally {
       setLoading(false)
     }
