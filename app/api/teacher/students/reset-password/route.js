@@ -45,8 +45,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 })
     }
 
-    // Generate new password
-    const newPassword = Math.random().toString(36).slice(-8)
+    // Generate new password (fixed initial value)
+    const newPassword = '8888'
     const passwordHash = await hashPassword(newPassword)
 
     // Update password

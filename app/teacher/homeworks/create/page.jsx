@@ -16,11 +16,18 @@ export default function HomeworkCreatePage() {
   const [leftDigits, setLeftDigits] = useState(2)
   const [rightDigits, setRightDigits] = useState(1)
   const [rows, setRows] = useState(4)
-  const [questionCount, setQuestionCount] = useState(20)
+  const [questionCount, setQuestionCount] = useState(5)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
+
+  // Initialize dates to today
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0]
+    setStartDate(today)
+    setEndDate(today)
+  }, [])
 
   useEffect(() => {
     const supabase = createClient()
@@ -132,7 +139,15 @@ export default function HomeworkCreatePage() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
       <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-semibold mb-6">宿題を作成</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold">宿題を作成</h1>
+          <Link
+            href="/teacher/home"
+            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+          >
+            ホームに戻る
+          </Link>
+        </div>
 
         {errors.general && (
           <div className="mb-4 p-3 bg-red-100 text-red-800 rounded">
@@ -319,7 +334,7 @@ export default function HomeworkCreatePage() {
               id="question_count"
               type="number"
               min="1"
-              max="100"
+              max="20"
               value={questionCount}
               onChange={(e) =>
                 setQuestionCount(parseInt(e.target.value, 10))

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { validateStudentData } from '@/lib/validation/student'
+import { getPlanLimits, checkStudentLimit, getLimitErrorMessage } from '@/lib/plans'
 
 export default function NewStudentPage() {
   const router = useRouter()
@@ -14,6 +15,7 @@ export default function NewStudentPage() {
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [studentCount, setStudentCount] = useState(0)
+  const [planType, setPlanType] = useState('free')
 
   useEffect(() => {
     const supabase = createClient()
@@ -24,7 +26,7 @@ export default function NewStudentPage() {
         return
       }
 
-      // Check student count
+      // Check student count and get plan type
       supabase
         .from('teachers')
         .select('school_id')
@@ -32,6 +34,18 @@ export default function NewStudentPage() {
         .single()
         .then(({ data: teacher }) => {
           if (teacher) {
+            // Get plan type
+            supabase
+              .from('schools')
+              .select('plan_type')
+              .eq('id', teacher.school_id)
+              .single()
+              .then(({ data: school }) => {
+                const plan = school?.plan_type || 'free'
+                setPlanType(plan)
+              })
+            
+            // Get student count
             supabase
               .from('students')
               .select('id', { count: 'exact', head: true })
@@ -48,10 +62,11 @@ export default function NewStudentPage() {
     e.preventDefault()
     setErrors({})
 
-    // Check limit
-    if (studentCount >= 10) {
+    // Check limit based on plan
+    if (!checkStudentLimit(planType, studentCount)) {
+      const errorMessage = getLimitErrorMessage(planType, 'students', studentCount)
       setErrors({
-        general: 'Freeプランでは10人まで登録できます',
+        general: errorMessage,
       })
       return
     }
@@ -99,11 +114,19 @@ export default function NewStudentPage() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
       <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-semibold mb-6">生徒を追加</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold">生徒を追加</h1>
+          <Link
+            href="/teacher/home"
+            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+          >
+            ホームに戻る
+          </Link>
+        </div>
 
-        {studentCount >= 10 && (
+        {!checkStudentLimit(planType, studentCount) && (
           <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded">
-            Freeプランでは10人まで登録できます（現在: {studentCount}人）
+            {getLimitErrorMessage(planType, 'students', studentCount)}
           </div>
         )}
 
@@ -165,7 +188,7 @@ export default function NewStudentPage() {
           <div className="flex gap-4">
             <button
               type="submit"
-              disabled={loading || studentCount >= 10}
+              disabled={loading || !checkStudentLimit(planType, studentCount)}
               className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? '作成中...' : '作成'}

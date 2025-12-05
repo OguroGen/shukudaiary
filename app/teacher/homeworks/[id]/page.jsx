@@ -107,12 +107,20 @@ export default function HomeworkDetailPage() {
                 宿題 #{homework.id.slice(0, 8)} - {studentName}
               </h1>
             </div>
-            <Link
-              href="/teacher/homeworks"
-              className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
-            >
-              宿題一覧に戻る
-            </Link>
+            <div className="flex gap-2">
+              <Link
+                href="/teacher/home"
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+              >
+                ホームに戻る
+              </Link>
+              <Link
+                href="/teacher/homeworks"
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+              >
+                宿題一覧に戻る
+              </Link>
+            </div>
           </div>
         </div>
 

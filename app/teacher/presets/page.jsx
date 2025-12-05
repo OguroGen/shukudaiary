@@ -110,12 +110,20 @@ export default function PresetsListPage() {
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-semibold">難度プリセット</h1>
-            <Link
-              href="/teacher/presets/new"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              プリセットを追加
-            </Link>
+            <div className="flex gap-2">
+              <Link
+                href="/teacher/home"
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+              >
+                ホームに戻る
+              </Link>
+              <Link
+                href="/teacher/presets/new"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                プリセットを追加
+              </Link>
+            </div>
           </div>
         </div>
 

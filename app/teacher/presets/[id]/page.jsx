@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { getPlanLimits, checkPresetLimit, getLimitErrorMessage } from '@/lib/plans'
 
 export default function PresetEditPage() {
   const router = useRouter()
@@ -18,6 +19,7 @@ export default function PresetEditPage() {
   const [rows, setRows] = useState(4)
   const [questionCount, setQuestionCount] = useState(20)
   const [presetCount, setPresetCount] = useState(0)
+  const [planType, setPlanType] = useState('free')
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(!isNew)
@@ -48,6 +50,17 @@ export default function PresetEditPage() {
         .single()
 
       if (teacher) {
+        // Get plan type
+        const { data: school } = await supabase
+          .from('schools')
+          .select('plan_type')
+          .eq('id', teacher.school_id)
+          .single()
+
+        const plan = school?.plan_type || 'free'
+        setPlanType(plan)
+        
+        // Get preset count
         const { count } = await supabase
           .from('presets')
           .select('id', { count: 'exact', head: true })
@@ -89,9 +102,10 @@ export default function PresetEditPage() {
     e.preventDefault()
     setErrors({})
 
-    if (isNew && presetCount >= 10) {
+    if (isNew && !checkPresetLimit(planType, presetCount)) {
+      const errorMessage = getLimitErrorMessage(planType, 'presets', presetCount)
       setErrors({
-        general: 'Freeプランでは10件まで登録できます',
+        general: errorMessage,
       })
       return
     }
@@ -148,13 +162,21 @@ export default function PresetEditPage() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
       <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-semibold mb-6">
-          {isNew ? 'プリセットを新規作成' : 'プリセットを編集'}
-        </h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold">
+            {isNew ? 'プリセットを新規作成' : 'プリセットを編集'}
+          </h1>
+          <Link
+            href="/teacher/home"
+            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+          >
+            ホームに戻る
+          </Link>
+        </div>
 
-        {isNew && presetCount >= 10 && (
+        {isNew && !checkPresetLimit(planType, presetCount) && (
           <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded">
-            Freeプランでは10件まで登録できます（現在: {presetCount}件）
+            {getLimitErrorMessage(planType, 'presets', presetCount)}
           </div>
         )}
 
@@ -308,7 +330,7 @@ export default function PresetEditPage() {
           <div className="flex gap-4">
             <button
               type="submit"
-              disabled={loading || (isNew && presetCount >= 10)}
+              disabled={loading || (isNew && !checkPresetLimit(planType, presetCount))}
               className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? '保存中...' : '保存'}
