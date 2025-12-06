@@ -35,25 +35,26 @@ export async function POST(request) {
       )
     }
 
-    // Get teacher's school_id
-    const { data: teacher } = await supabase
-      .from('teachers')
-      .select('school_id')
-      .eq('id', session.user.id)
+    // Get teacher's branch_id from teacher_branches (MVP: 1教場固定)
+    const { data: teacherBranch } = await supabase
+      .from('teacher_branches')
+      .select('branch_id')
+      .eq('teacher_id', session.user.id)
+      .limit(1)
       .single()
 
-    if (!teacher) {
-      return NextResponse.json({ error: 'Teacher not found' }, { status: 404 })
+    if (!teacherBranch) {
+      return NextResponse.json({ error: 'Teacher branch not found' }, { status: 404 })
     }
 
-    // Verify student belongs to teacher's school
+    // Verify student belongs to teacher's branch
     const { data: student } = await supabase
       .from('students')
-      .select('school_id')
+      .select('branch_id')
       .eq('id', homeworkData.student_id)
       .single()
 
-    if (!student || student.school_id !== teacher.school_id) {
+    if (!student || student.branch_id !== teacherBranch.branch_id) {
       return NextResponse.json(
         { error: 'Student not found' },
         { status: 404 }

@@ -41,13 +41,27 @@ export default function TeacherHomePage() {
 
           const today = new Date().toISOString().split('T')[0]
 
-          // Get students in school and stats in parallel
-          Promise.all([
-            supabase
-              .from('students')
-              .select('id')
-              .eq('school_id', teacher.school_id),
-          ]).then(([studentsRes]) => {
+          // Get teacher's branch_id from teacher_branches (MVP: 1教場固定)
+          supabase
+            .from('teacher_branches')
+            .select('branch_id')
+            .eq('teacher_id', session.user.id)
+            .limit(1)
+            .single()
+            .then(({ data: teacherBranch }) => {
+              if (!teacherBranch) {
+                setStats({ todayAnswers: 0, todaySubmissions: 0 })
+                setLoading(false)
+                return
+              }
+
+              // Get students in teacher's branch and stats in parallel
+              Promise.all([
+                supabase
+                  .from('students')
+                  .select('id')
+                  .eq('branch_id', teacherBranch.branch_id),
+              ]).then(([studentsRes]) => {
             const students = studentsRes.data || []
             if (students.length === 0) {
               setStats({ todayAnswers: 0, todaySubmissions: 0 })
@@ -70,11 +84,12 @@ export default function TeacherHomePage() {
                 .in('student_id', studentIds)
                 .gte('created_at', today),
             ]).then(([answersRes, homeworksRes]) => {
-              setStats({
-                todayAnswers: answersRes.count || 0,
-                todaySubmissions: homeworksRes.count || 0,
+                setStats({
+                  todayAnswers: answersRes.count || 0,
+                  todaySubmissions: homeworksRes.count || 0,
+                })
+                setLoading(false)
               })
-              setLoading(false)
             })
           })
         })

@@ -47,11 +47,14 @@ SupabaseダッシュボードのSQL Editorで、以下のマイグレーショ�
 2. `supabase/migrations/002_enable_realtime.sql` - Realtime機能の有効化
 3. `supabase/migrations/003_add_plan_type.sql` - プラン管理用カラムの追加
 4. `supabase/migrations/004_add_questions_to_homeworks.sql` - 宿題の問題データ保存用カラムの追加
+5. `supabase/migrations/005_add_branches.sql` - 教場（branches）機能の追加
 
 これにより以下のテーブルが作成されます:
 - `schools`: 教室情報
 - `teachers`: 先生情報
-- `students`: 生徒情報
+- `branches`: 教場情報（1つの教室に複数の教場を持つことが可能）
+- `teacher_branches`: 先生と教場の紐付け（多対多の関係）
+- `students`: 生徒情報（教場に紐付け）
 - `presets`: 難度プリセット
 - `homeworks`: 宿題情報（問題データを含む）
 - `answers`: 回答データ

@@ -33,7 +33,7 @@ export async function POST(request) {
       )
     }
 
-    // Get teacher's school_id
+    // Get teacher's school_id and branch_id
     const { data: teacher } = await supabase
       .from('teachers')
       .select('school_id')
@@ -42,6 +42,21 @@ export async function POST(request) {
 
     if (!teacher) {
       return NextResponse.json({ error: 'Teacher not found' }, { status: 404 })
+    }
+
+    // Get teacher's branch_id from teacher_branches (MVP: 1教場固定)
+    const { data: teacherBranch } = await supabase
+      .from('teacher_branches')
+      .select('branch_id')
+      .eq('teacher_id', session.user.id)
+      .limit(1)
+      .single()
+
+    if (!teacherBranch) {
+      return NextResponse.json(
+        { error: '教場が見つかりません' },
+        { status: 404 }
+      )
     }
 
     // Get school's plan_type
@@ -54,7 +69,7 @@ export async function POST(request) {
     // Get plan type (default to 'free' if not set)
     const planType = school?.plan_type || 'free'
 
-    // Check student count limit based on plan
+    // Check student count limit based on plan (school単位でチェック)
     const { count } = await supabase
       .from('students')
       .select('id', { count: 'exact', head: true })
@@ -71,11 +86,11 @@ export async function POST(request) {
       )
     }
 
-    // Check if login_id already exists in this school
+    // Check if login_id already exists in this branch (教場単位でチェック)
     const { data: existing } = await supabase
       .from('students')
       .select('id')
-      .eq('school_id', teacher.school_id)
+      .eq('branch_id', teacherBranch.branch_id)
       .eq('login_id', login_id)
       .single()
 
@@ -89,11 +104,12 @@ export async function POST(request) {
     // Hash password
     const passwordHash = await hashPassword(password)
 
-    // Create student
+    // Create student with branch_id
     const { data: student, error } = await supabase
       .from('students')
       .insert({
         school_id: teacher.school_id,
+        branch_id: teacherBranch.branch_id,
         login_id,
         password_hash: passwordHash,
         nickname,

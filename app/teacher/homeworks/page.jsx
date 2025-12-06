@@ -33,20 +33,21 @@ export default function HomeworksListPage() {
 
   const loadHomeworks = async (supabase, teacherId) => {
     try {
-      // Get teacher's school_id
-      const { data: teacher } = await supabase
-        .from('teachers')
-        .select('school_id')
-        .eq('id', teacherId)
+      // Get teacher's branch_id from teacher_branches (MVP: 1教場固定)
+      const { data: teacherBranch } = await supabase
+        .from('teacher_branches')
+        .select('branch_id')
+        .eq('teacher_id', teacherId)
+        .limit(1)
         .single()
 
-      if (!teacher) return
+      if (!teacherBranch) return
 
-      // Get all students in school
+      // Get all students in teacher's branch
       const { data: studentsData } = await supabase
         .from('students')
         .select('id, nickname, login_id')
-        .eq('school_id', teacher.school_id)
+        .eq('branch_id', teacherBranch.branch_id)
         .order('nickname')
 
       if (!studentsData || studentsData.length === 0) {
