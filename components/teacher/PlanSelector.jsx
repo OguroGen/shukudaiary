@@ -53,8 +53,7 @@ export default function PlanSelector({ selectedPlan, onPlanChange }) {
 
       {/* 開発中のプラン */}
       {comingSoonPlans.length > 0 && (
-        <div className="space-y-2 pt-4 border-t">
-          <div className="text-sm font-medium text-gray-500 mb-2">開発中</div>
+        <div className="space-y-2 pt-4">
           {comingSoonPlans.map((planId) => {
             const plan = PLANS[planId]
             return (

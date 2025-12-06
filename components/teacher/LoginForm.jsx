@@ -85,7 +85,7 @@ export default function TeacherLoginForm() {
           />
         </div>
         {successMessage && (
-          <div className="text-green-700 text-sm bg-green-50 p-3 rounded border border-green-200">
+          <div className="text-blue-700 text-sm bg-blue-50 p-3 rounded border border-blue-200">
             {successMessage}
           </div>
         )}

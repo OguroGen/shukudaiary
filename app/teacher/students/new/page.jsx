@@ -149,6 +149,9 @@ export default function NewStudentPage() {
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            <p className="text-sm text-gray-500 mt-1">
+              生徒がログインする際に使用するIDです。英数字で入力してください。
+            </p>
             {errors.login_id && (
               <p className="text-red-600 text-sm mt-1">{errors.login_id}</p>
             )}
@@ -165,6 +168,9 @@ export default function NewStudentPage() {
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            <p className="text-sm text-gray-500 mt-1">
+              生徒一覧や宿題一覧などで表示される名前です。
+            </p>
             {errors.nickname && (
               <p className="text-red-600 text-sm mt-1">{errors.nickname}</p>
             )}
@@ -181,6 +187,9 @@ export default function NewStudentPage() {
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            <p className="text-sm text-gray-500 mt-1">
+              生徒が初回ログイン時に使用するパスワードです。4文字以上で入力してください。
+            </p>
             {errors.password && (
               <p className="text-red-600 text-sm mt-1">{errors.password}</p>
             )}

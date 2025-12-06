@@ -255,12 +255,6 @@ export default function HomeworksListPage() {
               >
                 ホームに戻る
               </Link>
-              <Link
-                href="/teacher/homeworks/create"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                宿題を作成
-              </Link>
             </div>
           </div>
 

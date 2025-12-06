@@ -77,6 +77,15 @@ function HomeworkCreatePageContent() {
 
   const loadData = async (supabase, teacherId) => {
     try {
+      // Get teacher's school_id from teachers table
+      const { data: teacher } = await supabase
+        .from('teachers')
+        .select('school_id')
+        .eq('id', teacherId)
+        .single()
+
+      if (!teacher) return
+
       // Get teacher's branch_id from teacher_branches (MVP: 1教場固定)
       const { data: teacherBranch } = await supabase
         .from('teacher_branches')
@@ -227,7 +236,13 @@ function HomeworkCreatePageContent() {
         }
       }
 
-      router.push('/teacher/homeworks')
+      // 生徒一覧から来た場合（student_idパラメータがある場合）は生徒一覧に戻る
+      const studentIdFromUrl = searchParams.get('student_id')
+      if (studentIdFromUrl) {
+        router.push('/teacher/students')
+      } else {
+        router.push('/teacher/homeworks')
+      }
     } catch (error) {
       setErrors({ general: '宿題の作成に失敗しました' })
     } finally {

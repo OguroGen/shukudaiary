@@ -62,8 +62,12 @@ export default function TeacherSignupPage() {
 
       // サインアップ成功後、自動的にホーム画面に遷移
       if (data.requiresLogin) {
-        // 自動ログインに失敗した場合、ログインページに遷移
-        router.push('/teacher/login?message=アカウントが作成されました。ログインしてください。')
+        // メール認証が必要な場合とそうでない場合でメッセージを分ける
+        if (data.requiresEmailConfirmation) {
+          router.push('/teacher/login?message=アカウントが作成されました。メールアドレスに送信された確認メールを開いて認証を完了してください。認証完了後、ログインできます。')
+        } else {
+          router.push('/teacher/login?message=アカウントが作成されました。ログインしてください。')
+        }
       } else {
         // 自動ログイン成功、ホーム画面に遷移
         router.push('/teacher/home')

@@ -20,8 +20,20 @@ export async function POST(request) {
     })
 
     if (error || !data.user) {
+      // メール認証が未完了の場合のエラーメッセージを改善
+      const errorMessage = error?.message?.toLowerCase() || ''
+      if (
+        errorMessage.includes('email not confirmed') ||
+        errorMessage.includes('email_not_confirmed') ||
+        errorMessage.includes('email address not confirmed')
+      ) {
+        return NextResponse.json(
+          { error: 'メールアドレスの認証が完了していません。メールボックスを確認して、確認メールのリンクをクリックしてください。' },
+          { status: 401 }
+        )
+      }
       return NextResponse.json(
-        { error: 'Invalid email or password' },
+        { error: 'メールアドレスまたはパスワードが正しくありません' },
         { status: 401 }
       )
     }
