@@ -4,8 +4,27 @@ export function middleware(request) {
   const host = request.headers.get('host') || ''
   const pathname = request.nextUrl.pathname
 
-  // 既に/teacher/*や/student/*のパスにアクセスしている場合は、リダイレクトしない
-  if (pathname.startsWith('/teacher/') || pathname.startsWith('/student/') || pathname.startsWith('/api/')) {
+  // 開発環境では整合性チェックをスキップ（両方のパスにアクセス可能）
+  const isDevelopment = host.startsWith('localhost') || host.startsWith('127.0.0.1')
+  
+  // 本番環境でのみサブドメインとパスの整合性チェック
+  if (!isDevelopment) {
+    const isTeacherSubdomain = host === 'teacher.shukudaiary.anzan.online'
+    const isStudentSubdomain = host === 'shukudaiary.anzan.online'
+
+    // teacherサブドメインでstudentパスにアクセスしようとした場合
+    if (isTeacherSubdomain && pathname.startsWith('/student/')) {
+      return NextResponse.redirect(new URL('/teacher/login', request.url))
+    }
+
+    // studentサブドメインでteacherパスにアクセスしようとした場合
+    if (isStudentSubdomain && pathname.startsWith('/teacher/')) {
+      return NextResponse.redirect(new URL('/student/login', request.url))
+    }
+  }
+
+  // APIルートは通す（認証は各APIで行う）
+  if (pathname.startsWith('/api/')) {
     return NextResponse.next()
   }
 
@@ -22,7 +41,7 @@ export function middleware(request) {
     }
 
     // 開発環境（localhost）では、既存の動作を維持（/student/loginにリダイレクト）
-    if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) {
+    if (isDevelopment) {
       return NextResponse.redirect(new URL('/student/login', request.url))
     }
   }
