@@ -49,6 +49,7 @@ SupabaseダッシュボードのSQL Editorで、以下のマイグレーショ�
 4. `supabase/migrations/004_add_questions_to_homeworks.sql` - 宿題の問題データ保存用カラムの追加
 5. `supabase/migrations/005_add_branches.sql` - 教場（branches）機能の追加
 6. `supabase/migrations/006_add_teacher_role.sql` - 先生のroleカラム追加（オーナー機能）
+7. `supabase/migrations/007_add_signup_policies.sql` - サインアップ時のRLSポリシー追加（**重要：サインアップ機能を使用する場合は必須**）
 
 これにより以下のテーブルが作成されます:
 - `schools`: 教室情報
@@ -67,6 +68,93 @@ npm run dev
 ```
 
 ブラウザで [http://localhost:3000](http://localhost:3000) を開いてください。
+
+### 6. Supabase Auth設定（本番環境向け）
+
+#### メール確認機能の有効化
+
+本番環境では、メールアドレスの確認機能を有効化することを強く推奨します。これにより、存在しないメールアドレスでの登録を防げます。
+
+**設定手順:**
+
+1. Supabaseダッシュボードにログイン
+2. 左側のメニューから **「Authentication」** を選択
+3. **「Settings」** タブを開く
+4. **「Confirm email」** のスイッチを **ON** に設定
+
+**注意事項:**
+- 開発環境では、メール確認をOFFにしている場合、存在しないメールアドレスでも登録できてしまいます
+- 本番環境にデプロイする前に、必ずメール確認を有効化してください
+- メール確認を有効化すると、ユーザーは登録後に確認メールをクリックしないとログインできなくなります
+
+#### カスタムSMTP設定（オプション）
+
+Supabaseのデフォルトメール送信には制限があるため、本番環境では独自のSMTPサーバーを設定することを推奨します。
+
+1. Supabaseダッシュボード → **Project Settings** → **SMTP Settings**
+2. **「Enable Custom SMTP」** をONに設定
+3. 以下の情報を入力:
+   - **Sender email**: 送信元のメールアドレス
+   - **Sender name**: 送信者名
+   - **Host**: SMTPサーバーのホスト名
+   - **Port number**: SMTPサーバーのポート番号（通常は465または587）
+   - **Username**: SMTPサーバーのユーザー名
+   - **Password**: SMTPサーバーのパスワード
+
+#### メールテンプレートのカスタマイズ（オプション）
+
+1. Authentication → **Email Templates**
+2. 「Confirm signup」テンプレートを編集
+
+### 7. カスタムドメイン設定（Vercel）
+
+本アプリケーションは、以下の2つのドメインでアクセスできます：
+
+- **生徒側**: `shukudaiary.anzan.online` → 生徒ログインページに自動リダイレクト
+- **先生側**: `teacher.shukudaiary.anzan.online` → 先生ログインページに自動リダイレクト
+
+#### Vercelダッシュボードでの設定
+
+1. [Vercelダッシュボード](https://vercel.com)にログイン
+2. プロジェクトを選択
+3. **Settings** → **Domains** を開く
+4. 以下のドメインを追加:
+   - `shukudaiary.anzan.online`
+   - `teacher.shukudaiary.anzan.online`
+5. 各ドメインの追加後、Vercelが表示するDNS設定情報を確認
+
+#### エックスサーバーでのDNS設定
+
+エックスサーバーのサーバーパネルで、以下のCNAMEレコードを設定してください：
+
+1. サーバーパネルにログイン
+2. **ドメイン設定** → **DNSレコード設定** を開く
+3. 以下のCNAMEレコードを追加:
+
+   **shukudaiary.anzan.online の場合:**
+   - **ホスト名**: `shukudaiary`（または空欄、ドメインによって異なる場合があります）
+   - **タイプ**: `CNAME`
+   - **値**: Vercelが表示するCNAME値（通常は `cname.vercel-dns.com` など）
+
+   **teacher.shukudaiary.anzan.online の場合:**
+   - **ホスト名**: `teacher`
+   - **タイプ**: `CNAME`
+   - **値**: Vercelが表示するCNAME値（通常は `cname.vercel-dns.com` など）
+
+**注意事項:**
+- DNS設定の反映には数分から最大48時間かかる場合があります
+- 設定後、Vercelダッシュボードでドメインの状態を確認してください（「Valid Configuration」と表示されれば設定完了）
+- ドメイン設定が完了すると、各ドメインにアクセスした際に自動的に適切なログインページにリダイレクトされます
+
+#### ドメイン別のリダイレクト動作
+
+アプリケーションは、アクセスしたドメインに基づいて自動的に適切なページにリダイレクトします：
+
+- `shukudaiary.anzan.online` にアクセス → `/student/login` にリダイレクト
+- `teacher.shukudaiary.anzan.online` にアクセス → `/teacher/login` にリダイレクト
+- 開発環境（`localhost`）では、デフォルトで `/student/login` にリダイレクト
+
+この動作は `middleware.js` で実装されています。
 
 ## 初期設定
 
@@ -93,7 +181,7 @@ INSERT INTO schools (name, plan_type) VALUES ('テスト教室', 'free');
 INSERT INTO branches (school_id, name)
 VALUES (
   '作成した教室のID',
-  '本教場'
+  '__DEFAULT__'  -- システムデフォルト名（後で変更可能）
 );
 
 -- 先生用のSupabase Authユーザーを作成（SupabaseダッシュボードのAuthenticationから）

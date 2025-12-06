@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation'
 
 export default function Home() {
-  // Always redirect to student login page
+  // ミドルウェアでドメインに基づいてリダイレクトされるため、
+  // このページに到達することは通常ありません。
+  // フォールバックとして、デフォルトで生徒ログインページにリダイレクト
   redirect('/student/login')
 }
 

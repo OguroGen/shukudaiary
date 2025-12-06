@@ -1,19 +1,32 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function TeacherLoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // URLクエリパラメータからメッセージを取得
+  useEffect(() => {
+    const message = searchParams.get('message')
+    if (message) {
+      setSuccessMessage(message)
+      // URLからクエリパラメータを削除（クリーンなURLを保つ）
+      router.replace('/teacher/login', { scroll: false })
+    }
+  }, [searchParams, router])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setSuccessMessage('') // フォーム送信時に成功メッセージをクリア
     setLoading(true)
 
     try {
@@ -71,6 +84,11 @@ export default function TeacherLoginForm() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+        {successMessage && (
+          <div className="text-green-700 text-sm bg-green-50 p-3 rounded border border-green-200">
+            {successMessage}
+          </div>
+        )}
         {error && (
           <div className="text-red-600 text-sm bg-red-50 p-3 rounded">
             {error}
