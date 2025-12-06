@@ -48,6 +48,7 @@ SupabaseダッシュボードのSQL Editorで、以下のマイグレーショ�
 3. `supabase/migrations/003_add_plan_type.sql` - プラン管理用カラムの追加
 4. `supabase/migrations/004_add_questions_to_homeworks.sql` - 宿題の問題データ保存用カラムの追加
 5. `supabase/migrations/005_add_branches.sql` - 教場（branches）機能の追加
+6. `supabase/migrations/006_add_teacher_role.sql` - 先生のroleカラム追加（オーナー機能）
 
 これにより以下のテーブルが作成されます:
 - `schools`: 教室情報
@@ -69,21 +70,47 @@ npm run dev
 
 ## 初期設定
 
-### 教室と先生の作成
+### サインアップ機能（推奨）
+
+1. ブラウザで `/teacher/signup` にアクセス
+2. 教室名、メールアドレス、パスワードを入力
+3. Freeプランを選択してアカウントを作成
+4. 自動的にログインされ、ホーム画面に遷移
+
+**注意**: サインアップ時に作成される最初の先生アカウントは自動的に`role='owner'`（オーナー）として設定されます。
+
+### 手動での教室と先生の作成（従来の方法）
+
+手動で教室と先生を作成する場合:
 
 1. Supabaseダッシュボードで以下を実行:
 
 ```sql
 -- 教室を作成
-INSERT INTO schools (name) VALUES ('テスト教室');
+INSERT INTO schools (name, plan_type) VALUES ('テスト教室', 'free');
+
+-- 教場を作成
+INSERT INTO branches (school_id, name)
+VALUES (
+  '作成した教室のID',
+  '本教場'
+);
 
 -- 先生用のSupabase Authユーザーを作成（SupabaseダッシュボードのAuthenticationから）
 -- その後、teachersテーブルにレコードを追加
-INSERT INTO teachers (id, school_id, email)
+INSERT INTO teachers (id, school_id, email, role)
 VALUES (
   '作成したSupabase AuthユーザーのID',
   '作成した教室のID',
-  'teacher@example.com'
+  'teacher@example.com',
+  'owner'  -- または 'teacher'
+);
+
+-- 先生と教場を紐付け
+INSERT INTO teacher_branches (teacher_id, branch_id)
+VALUES (
+  '作成したSupabase AuthユーザーのID',
+  '作成した教場のID'
 );
 ```
 
@@ -102,6 +129,10 @@ VALUES (
 
 ### 先生側
 
+- サインアップ（新規登録）
+  - 教室名、メールアドレス、パスワードでアカウント作成
+  - Freeプランのみ選択可能（Basic以上は開発中表示）
+  - サインアップ時に作成される最初の先生は自動的にオーナー（owner）として設定
 - ログイン（Supabase Auth）
 - ダッシュボード（統計情報、メニュー）
 - 生徒管理（一覧、詳細、追加、パスワードリセット）
@@ -113,31 +144,33 @@ VALUES (
 現在はMVP段階のため、生徒数とプリセット数の制限のみ実装されています。プラン切り替え機能は実装済みです。
 
 ### 🆓 Free（MVP）
-- 生徒: 10人まで
-- プリセット: 10件まで
-- 結果保存: 90日（将来対応）
-- 新規教室が使い始めやすい
+- 生徒数: 10人
+- プリセット: 10件
+- 結果保存: 90日
+- メッセージ: なし
+- ※まず試す用の導入プラン
 
-### 🔰 Basic ¥3,000（将来実装予定）
-- 生徒: 30人まで
-- プリセット: 30件まで
-- 結果保存: 1年
-- CSV出力
-- 小規模教室のメイン
-
-### 🏫 Standard ¥5,000（将来実装予定）
-- 生徒: 100人まで
-- プリセット: 100件まで
+### 🔰 Basic ¥2,000/月（将来実装予定）
+- 生徒数: 30人
+- プリセット: 30件
 - 結果保存: 無期限
-- 弱点分析
-- 中規模教室の本命
+- メッセージ: なし
+- 地方の小規模教室向けの低価格導入プラン
 
-### 👑 Premium ¥9,800（将来実装予定）
-- 生徒: 無制限
+### 🏫 Standard ¥5,000〜6,000/月（将来実装予定）
+- 生徒数: 100人
+- プリセット: 100件
+- 結果保存: 無期限
+- メッセージ: 個別送信のみ
+- 成長フェーズの教室向けのメインプラン
+
+### 👑 Premium ¥9,800〜/月（将来実装予定）
+- 生徒数: 無制限
 - プリセット: 無制限
 - 結果保存: 無期限
-- PDF帳票・一括出題・ホワイトラベル
-- 大規模向け
+- メッセージ: 個別＋一斉送信（将来）
+- 教場（複数教室）管理
+- 法人・多教場展開向けハイエンド
 
 ### プラン管理
 

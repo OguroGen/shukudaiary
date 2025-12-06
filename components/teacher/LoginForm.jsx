@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function TeacherLoginForm() {
   const router = useRouter()
@@ -83,6 +84,14 @@ export default function TeacherLoginForm() {
           {loading ? 'ログイン中...' : 'ログイン'}
         </button>
       </form>
+      <div className="mt-4 text-center">
+        <Link
+          href="/teacher/signup"
+          className="text-sm text-blue-600 hover:text-blue-700"
+        >
+          アカウントをお持ちでない方はこちら
+        </Link>
+      </div>
     </div>
   )
 }
