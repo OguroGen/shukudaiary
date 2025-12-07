@@ -118,28 +118,37 @@ export default function TeacherHomePage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div>読み込み中...</div>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-slate-600 dark:text-slate-400 font-medium">読み込み中...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
-          <div className="flex justify-between items-center mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* ヘッダー */}
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6 mb-6">
+          <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-semibold">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
                 ようこそ、{teacherName}さん
               </h1>
               {schoolName && (
-                <p className="text-gray-600 mt-1">教室: {schoolName}</p>
+                <p className="text-slate-600 dark:text-slate-400 mt-2 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <span className="font-medium">{schoolName}</span>
+                </p>
               )}
             </div>
             <button
               onClick={handleLogout}
-              className="text-sm text-gray-600 hover:text-gray-800"
+              className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all duration-200 font-medium"
             >
               ログアウト
             </button>
@@ -148,90 +157,146 @@ export default function TeacherHomePage() {
 
         {/* 生徒用URL表示 */}
         {schoolSlug && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 rounded-lg shadow-lg p-6 mb-4">
-            <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
-              <span>📋</span>
+          <div className="bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 rounded-2xl shadow-xl p-6 mb-6 border border-blue-400/20 dark:border-blue-500/20">
+            <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
               <span>生徒用ログインURL</span>
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+            <p className="text-blue-100 dark:text-blue-200 mb-4 text-sm">
               このURLを生徒に配布してください
             </p>
-            <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 mb-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-gray-500 dark:text-gray-400 text-sm">
-                  {baseUrl}/student/
-                </span>
-                <span className="text-blue-600 dark:text-blue-400 font-mono font-semibold text-lg">
-                  {schoolSlug}/login
-                </span>
+            <div className="bg-white/10 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex-1 flex items-center gap-2 flex-wrap min-w-0">
+                  <span className="text-blue-100 dark:text-blue-200 text-sm font-mono">
+                    {baseUrl}/student/
+                  </span>
+                  <span className="text-white font-mono font-bold text-lg">
+                    {schoolSlug}/login
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    const url = `${baseUrl}/student/${schoolSlug}/login`
+                    navigator.clipboard.writeText(url).then(() => {
+                      alert('URLをクリップボードにコピーしました')
+                    }).catch(() => {
+                      // フォールバック: テキストを選択
+                      const textArea = document.createElement('textarea')
+                      textArea.value = url
+                      document.body.appendChild(textArea)
+                      textArea.select()
+                      document.execCommand('copy')
+                      document.body.removeChild(textArea)
+                      alert('URLをクリップボードにコピーしました')
+                    })
+                  }}
+                  className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md flex-shrink-0"
+                  title="URLをコピー"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
               </div>
             </div>
-            <button
-              onClick={() => {
-                const url = `${baseUrl}/student/${schoolSlug}/login`
-                navigator.clipboard.writeText(url).then(() => {
-                  alert('URLをクリップボードにコピーしました')
-                }).catch(() => {
-                  // フォールバック: テキストを選択
-                  const textArea = document.createElement('textarea')
-                  textArea.value = url
-                  document.body.appendChild(textArea)
-                  textArea.select()
-                  document.execCommand('copy')
-                  document.body.removeChild(textArea)
-                  alert('URLをクリップボードにコピーしました')
-                })
-              }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-            >
-              📋 URLをコピー
-            </button>
           </div>
         )}
 
+        {/* 統計カード */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold mb-2">
-                今日の宿題提出数
-              </h3>
-              <p className="text-3xl font-bold">{stats.todaySubmissions}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700 rounded-2xl shadow-xl p-6 border border-emerald-400/20 dark:border-emerald-500/20 transform hover:scale-105 transition-all duration-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white">
+                  今日の宿題提出数
+                </h3>
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-4xl font-bold text-white">{stats.todaySubmissions}</p>
             </div>
-            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold mb-2">
-                今日の回答数
-              </h3>
-              <p className="text-3xl font-bold">{stats.todayAnswers}</p>
+            <div className="bg-gradient-to-br from-amber-500 to-orange-600 dark:from-amber-600 dark:to-orange-700 rounded-2xl shadow-xl p-6 border border-amber-400/20 dark:border-amber-500/20 transform hover:scale-105 transition-all duration-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white">
+                  今日の回答数
+                </h3>
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-4xl font-bold text-white">{stats.todayAnswers}</p>
             </div>
           </div>
         )}
 
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">メニュー</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* メニュー */}
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6">メニュー</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
               href="/teacher/students"
-              className="px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center"
+              className="group relative bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 rounded-xl p-6 text-white hover:shadow-2xl transition-all duration-200 transform hover:-translate-y-1 overflow-hidden"
             >
-              生徒管理
+              <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+              <div className="relative">
+                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold">生徒管理</h3>
+              </div>
             </Link>
             <Link
               href="/teacher/homeworks"
-              className="px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center"
+              className="group relative bg-gradient-to-br from-purple-500 to-pink-600 dark:from-purple-600 dark:to-pink-700 rounded-xl p-6 text-white hover:shadow-2xl transition-all duration-200 transform hover:-translate-y-1 overflow-hidden"
             >
-              宿題管理
+              <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+              <div className="relative">
+                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold">宿題管理</h3>
+              </div>
             </Link>
             <Link
               href="/teacher/presets"
-              className="px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center"
+              className="group relative bg-gradient-to-br from-cyan-500 to-blue-600 dark:from-cyan-600 dark:to-blue-700 rounded-xl p-6 text-white hover:shadow-2xl transition-all duration-200 transform hover:-translate-y-1 overflow-hidden"
             >
-              プリセット管理
+              <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+              <div className="relative">
+                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold">プリセット管理</h3>
+              </div>
             </Link>
             <Link
               href="/teacher/settings"
-              className="px-6 py-4 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-center"
+              className="group relative bg-gradient-to-br from-slate-500 to-slate-600 dark:from-slate-600 dark:to-slate-700 rounded-xl p-6 text-white hover:shadow-2xl transition-all duration-200 transform hover:-translate-y-1 overflow-hidden"
             >
-              設定
+              <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+              <div className="relative">
+                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold">設定</h3>
+              </div>
             </Link>
           </div>
         </div>
