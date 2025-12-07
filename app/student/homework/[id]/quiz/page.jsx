@@ -113,7 +113,7 @@ export default function HomeworkQuizPage() {
   if (loading || !homework || questions.length === 0) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-yellow-50">
-        <div className="text-2xl font-bold text-orange-500">読み込み中...</div>
+        <div className="text-base font-bold text-orange-500">読み込み中...</div>
       </div>
     )
   }
@@ -121,20 +121,20 @@ export default function HomeworkQuizPage() {
   const currentQuestion = questions[currentIndex]
 
   return (
-    <div className="min-h-screen bg-yellow-50 p-4">
+    <div className="min-h-screen bg-yellow-50 p-2">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-3xl shadow-xl p-6 mb-6 border-4 border-blue-300">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-blue-600">
+        <div className="bg-white rounded-xl shadow-lg p-3 mb-3 border-2 border-blue-300">
+          <div className="flex justify-between items-center mb-2">
+            <h1 className="text-sm font-bold text-blue-600">
               📝 宿題 #{homework.id.slice(0, 8)}
             </h1>
-            <div className="text-xl font-bold text-orange-500 bg-orange-100 px-4 py-2 rounded-2xl">
+            <div className="text-xs font-bold text-orange-500 bg-orange-100 px-2 py-1 rounded-xl">
               問題 {currentIndex + 1} / {questions.length}
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-xl p-6 border-4 border-green-300">
+        <div className="bg-white rounded-xl shadow-lg p-3 border-2 border-green-300">
           <QuestionDisplay
             type={homework.type}
             question={currentQuestion}

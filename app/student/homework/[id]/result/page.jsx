@@ -62,7 +62,7 @@ export default function HomeworkResultPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-yellow-50">
-        <div className="text-2xl font-bold text-orange-500">読み込み中...</div>
+        <div className="text-base font-bold text-orange-500">読み込み中...</div>
       </div>
     )
   }
@@ -70,57 +70,63 @@ export default function HomeworkResultPage() {
   if (!homework || !result) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-yellow-50">
-        <div className="text-2xl font-bold text-red-500">結果が見つかりません</div>
+        <div className="text-base font-bold text-red-500">結果が見つかりません</div>
       </div>
     )
+  }
+
+  // 数値を3桁ごとにコンマで区切る関数
+  const formatNumber = (num) => {
+    if (num == null) return ''
+    return Number(num).toLocaleString('ja-JP')
   }
 
   const formatQuestion = (answer) => {
     const q = answer.question
     if (q.type === 'mul') {
-      return `${q.left} × ${q.right}`
+      return `${formatNumber(q.left)} × ${formatNumber(q.right)}`
     } else if (q.type === 'div') {
-      return `${q.dividend} ÷ ${q.divisor}`
+      return `${formatNumber(q.dividend)} ÷ ${formatNumber(q.divisor)}`
     } else {
-      return q.numbers?.join(' + ') || ''
+      return q.numbers?.map(num => formatNumber(num)).join(' + ') || ''
     }
   }
 
   const percentage = Math.round((result.correct / result.total) * 100)
 
   return (
-    <div className="min-h-screen bg-yellow-50 p-4">
-      <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-8 border-4 border-green-300">
-        <h1 className="text-3xl font-bold mb-8 text-center text-green-600">
+    <div className="min-h-screen bg-yellow-50 p-2">
+      <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-4 border-2 border-green-300">
+        <h1 className="text-lg font-bold mb-4 text-center text-green-600">
           🎉 宿題の結果 🎉
         </h1>
 
-        <div className="mb-8 p-8 bg-green-100 rounded-3xl border-4 border-green-400">
-          <div className="text-5xl font-bold text-center text-green-700 mb-2">
+        <div className="mb-4 p-4 bg-green-100 rounded-xl border-2 border-green-400">
+          <div className="text-2xl font-bold text-center text-green-700 mb-1">
             正解: {result.correct} / {result.total}
           </div>
-          <div className="text-3xl font-bold text-center text-green-600">
+          <div className="text-base font-bold text-center text-green-600">
             {percentage}% できました！
           </div>
         </div>
 
         {result.wrongAnswers.length > 0 && (
-          <div className="mb-8 bg-red-50 rounded-3xl p-6 border-4 border-red-300">
-            <h2 className="text-2xl font-bold mb-4 text-red-600">❌ 間違えた問題</h2>
-            <div className="space-y-3">
+          <div className="mb-4 bg-red-50 rounded-xl p-3 border-2 border-red-300">
+            <h2 className="text-sm font-bold mb-3 text-red-600">❌ 間違えた問題</h2>
+            <div className="space-y-2">
               {result.wrongAnswers.map((answer, idx) => (
                 <div
                   key={answer.id || idx}
-                  className="p-4 border-4 border-red-300 rounded-2xl bg-white"
+                  className="p-2 border-2 border-red-300 rounded-xl bg-white"
                 >
-                  <div className="text-base font-semibold text-gray-800">
+                  <div className="text-xs font-semibold text-gray-800">
                     <span className="text-red-500">問題{answer.question_index + 1}:</span>{' '}
                     {formatQuestion(answer)}
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    <span className="text-green-600 font-bold">正答: {answer.correct_answer}</span>
+                  <div className="text-xs text-gray-600 mt-1">
+                    <span className="text-green-600 font-bold">正答: {formatNumber(answer.correct_answer)}</span>
                     {' / '}
-                    <span className="text-red-600 font-bold">あなたの答え: {answer.student_answer}</span>
+                    <span className="text-red-600 font-bold">あなたの答え: {formatNumber(answer.student_answer)}</span>
                   </div>
                 </div>
               ))}
@@ -130,7 +136,7 @@ export default function HomeworkResultPage() {
 
         <Link
           href="/student/home"
-          className="block w-full px-6 py-4 bg-orange-400 text-white rounded-2xl hover:bg-orange-500 text-center font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
+          className="block w-full px-4 py-2 bg-orange-400 text-white rounded-xl hover:bg-orange-500 text-center font-bold text-sm shadow-md transform hover:scale-105 transition-transform"
         >
           🏠 ホームに戻る
         </Link>

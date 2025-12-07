@@ -81,21 +81,21 @@ export default function StudentPasswordChangePage() {
   }
 
   return (
-    <div className="min-h-screen bg-yellow-50 p-4">
-      <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl p-8 border-4 border-gray-300">
-        <h1 className="text-3xl font-bold mb-8 text-center text-gray-700">
+    <div className="min-h-screen bg-yellow-50 p-2">
+      <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-4 border-2 border-gray-300">
+        <h1 className="text-lg font-bold mb-4 text-center text-gray-700">
           🔑 パスワードを変更
         </h1>
 
         {success && (
-          <div className="mb-6 p-4 bg-green-100 text-green-800 rounded-2xl border-4 border-green-300 font-bold text-lg text-center">
+          <div className="mb-4 p-2 bg-green-100 text-green-800 rounded-xl border-2 border-green-300 font-bold text-sm text-center">
             ✅ パスワードを変更しました
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label htmlFor="old_password" className="block text-base font-bold mb-2 text-gray-700">
+            <label htmlFor="old_password" className="block text-sm font-bold mb-1 text-gray-700">
               現在のパスワード
             </label>
             <input
@@ -104,11 +104,11 @@ export default function StudentPasswordChangePage() {
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
               required
-              className="w-full px-5 py-3 border-4 border-yellow-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-yellow-200 text-lg"
+              className="w-full px-3 py-2 border-2 border-yellow-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-200 text-sm"
             />
           </div>
           <div>
-            <label htmlFor="new_password" className="block text-base font-bold mb-2 text-gray-700">
+            <label htmlFor="new_password" className="block text-sm font-bold mb-1 text-gray-700">
               新しいパスワード
             </label>
             <input
@@ -117,13 +117,13 @@ export default function StudentPasswordChangePage() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
-              className="w-full px-5 py-3 border-4 border-yellow-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-yellow-200 text-lg"
+              className="w-full px-3 py-2 border-2 border-yellow-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-200 text-sm"
             />
           </div>
           <div>
             <label
               htmlFor="confirm_password"
-              className="block text-base font-bold mb-2 text-gray-700"
+              className="block text-sm font-bold mb-1 text-gray-700"
             >
               新しいパスワード（確認）
             </label>
@@ -133,25 +133,25 @@ export default function StudentPasswordChangePage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="w-full px-5 py-3 border-4 border-yellow-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-yellow-200 text-lg"
+              className="w-full px-3 py-2 border-2 border-yellow-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-200 text-sm"
             />
           </div>
           {error && (
-            <div className="text-red-700 text-base bg-red-100 p-4 rounded-2xl border-4 border-red-300 font-semibold">
+            <div className="text-red-700 text-xs bg-red-100 p-2 rounded-xl border-2 border-red-300 font-semibold">
               {error}
             </div>
           )}
-          <div className="flex gap-4">
+          <div className="flex gap-2">
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-6 py-4 bg-orange-400 text-white rounded-2xl hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
+              className="flex-1 px-4 py-2 bg-orange-400 text-white rounded-xl hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm shadow-md transform hover:scale-105 transition-transform"
             >
               {loading ? '保存中...' : '💾 保存'}
             </button>
             <Link
               href="/student/home"
-              className="flex-1 px-6 py-4 bg-gray-400 text-white rounded-2xl hover:bg-gray-500 text-center font-bold text-lg shadow-lg transform hover:scale-105 transition-transform"
+              className="flex-1 px-4 py-2 bg-gray-400 text-white rounded-xl hover:bg-gray-500 text-center font-bold text-sm shadow-md transform hover:scale-105 transition-transform"
             >
               🏠 ホームに戻る
             </Link>

@@ -287,6 +287,26 @@ VALUES (
 - UI: `app/teacher/settings/page.jsx`（新規作成）
 - バリデーション: `lib/plans.js`に関数追加
 
+**教場専用ログインURL機能**
+
+各教場から発行する生徒用のログインURLを教場専用にし、そのURLからアクセスした場合はその教場の生徒のみがログインできるようにします。
+
+実装内容：
+- ログインURL形式: `/student/login?branch=<branch_id>`
+- ログイン処理で`branch_id`と`login_id`の組み合わせで検索
+- 先生側のホームページや生徒管理画面に教場専用URLを表示・コピー機能を追加
+
+実装場所：
+- `components/student/LoginForm.jsx` - URLパラメータから`branch_id`を取得
+- `lib/auth/student.js` - `authenticateStudent`関数で`branch_id`を考慮した認証
+- `app/api/student/login/route.js` - `branch_id`をリクエストに含める
+- `app/teacher/home/page.jsx` - 教場専用URLを表示・コピー機能を追加
+
+背景：
+- 現在、異なる教場に同じ`login_id`と`password`を持つ生徒がいる場合、どちらの教場からでもログインできてしまう問題がある
+- データベース制約では`UNIQUE(branch_id, login_id)`により教場内でのユニーク性は担保されているが、ログイン処理で教場を考慮していない
+- 教場専用URLにより、URLに含まれる`branch_id`で正しい教場の生徒のみがログインできるようになる
+
 ## プロジェクト構造
 
 ```

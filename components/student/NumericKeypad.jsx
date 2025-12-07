@@ -25,13 +25,13 @@ function NumericKeypad({
   ]
 
   return (
-    <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
+    <div className="grid grid-cols-3 gap-2 max-w-sm mx-auto">
       {numbers.map((num, idx) => (
         <button
           key={num}
           onClick={() => onNumberClick(num)}
           disabled={disabled}
-          className={`aspect-square ${buttonColors[idx]} rounded-3xl text-3xl font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-110 active:scale-95 transition-transform border-4 border-white`}
+          className={`aspect-square ${buttonColors[idx]} rounded-xl text-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-md transform hover:scale-110 active:scale-95 transition-transform border-2 border-white`}
         >
           {num}
         </button>
@@ -39,21 +39,21 @@ function NumericKeypad({
       <button
         onClick={onClear}
         disabled={disabled}
-        className="aspect-square bg-red-400 hover:bg-red-500 active:bg-red-600 text-white rounded-3xl font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-110 active:scale-95 transition-transform border-4 border-white text-2xl"
+        className="aspect-square bg-red-400 hover:bg-red-500 active:bg-red-600 text-white rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-md transform hover:scale-110 active:scale-95 transition-transform border-2 border-white text-base"
       >
         🗑️ C
       </button>
       <button
         onClick={() => onNumberClick(0)}
         disabled={disabled}
-        className="aspect-square bg-yellow-300 hover:bg-yellow-400 active:bg-yellow-500 rounded-3xl text-3xl font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-110 active:scale-95 transition-transform border-4 border-white"
+        className="aspect-square bg-yellow-300 hover:bg-yellow-400 active:bg-yellow-500 rounded-xl text-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-md transform hover:scale-110 active:scale-95 transition-transform border-2 border-white"
       >
         0
       </button>
       <button
         onClick={onSubmit}
         disabled={disabled || submitDisabled}
-        className="aspect-square bg-green-400 hover:bg-green-500 active:bg-green-600 text-white rounded-3xl font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-110 active:scale-95 transition-transform border-4 border-white text-2xl"
+        className="aspect-square bg-green-400 hover:bg-green-500 active:bg-green-600 text-white rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-md transform hover:scale-110 active:scale-95 transition-transform border-2 border-white text-base"
       >
         ✓ OK
       </button>

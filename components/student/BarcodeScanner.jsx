@@ -97,20 +97,20 @@ export default function BarcodeScanner({ onScan, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800">バーコードスキャン</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-2">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-3">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-sm font-bold text-gray-800">バーコードスキャン</h2>
           <button
             onClick={handleClose}
-            className="text-gray-600 hover:text-gray-800 text-2xl font-bold"
+            className="text-gray-600 hover:text-gray-800 text-xl font-bold"
           >
             ×
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-2xl border-2 border-red-300">
+          <div className="mb-2 p-2 bg-red-100 text-red-700 rounded-xl border-2 border-red-300 text-xs">
             {error}
           </div>
         )}
@@ -118,19 +118,19 @@ export default function BarcodeScanner({ onScan, onClose }) {
         <div
           id="barcode-scanner"
           ref={scannerRef}
-          className="w-full rounded-2xl overflow-hidden bg-black"
-          style={{ minHeight: '300px' }}
+          className="w-full rounded-xl overflow-hidden bg-black"
+          style={{ minHeight: '200px' }}
         />
 
         {isScanning && (
-          <p className="mt-4 text-center text-gray-600">
+          <p className="mt-2 text-center text-gray-600 text-xs">
             バーコードをカメラの中央に合わせてください
           </p>
         )}
 
         <button
           onClick={handleClose}
-          className="mt-4 w-full py-3 bg-gray-400 text-white rounded-2xl hover:bg-gray-500 font-bold"
+          className="mt-2 w-full py-2 bg-gray-400 text-white rounded-xl hover:bg-gray-500 font-bold text-sm"
         >
           キャンセル
         </button>
