@@ -16,8 +16,12 @@ export default function TeacherHomePage() {
 
   useEffect(() => {
     // ベースURLを取得（クライアントサイドのみ）
+    // 生徒用URLはstudentサブドメインを使用
     if (typeof window !== 'undefined') {
-      setBaseUrl(window.location.origin)
+      const origin = window.location.origin
+      // teacherサブドメインの場合はstudentサブドメインに変換
+      const studentBaseUrl = origin.replace('teacher.shukudaiary.anzan.online', 'shukudaiary.anzan.online')
+      setBaseUrl(studentBaseUrl)
     }
   }, [])
 

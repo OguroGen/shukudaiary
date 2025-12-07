@@ -18,32 +18,15 @@ export function middleware(request) {
     }
 
     // studentサブドメインでteacherパスにアクセスしようとした場合
+    // スラッグが分からないため、リダイレクトしない（404になる）
     if (isStudentSubdomain && pathname.startsWith('/teacher/')) {
-      return NextResponse.redirect(new URL('/student/login', request.url))
+      return NextResponse.next()
     }
   }
 
   // APIルートは通す（認証は各APIで行う）
   if (pathname.startsWith('/api/')) {
     return NextResponse.next()
-  }
-
-  // ルートパス（/）のみをリダイレクト対象とする
-  if (pathname === '/') {
-    // teacher.shukudaiary.anzan.onlineでアクセスした場合
-    if (host === 'teacher.shukudaiary.anzan.online') {
-      return NextResponse.redirect(new URL('/teacher/login', request.url))
-    }
-
-    // shukudaiary.anzan.onlineでアクセスした場合
-    if (host === 'shukudaiary.anzan.online') {
-      return NextResponse.redirect(new URL('/student/login', request.url))
-    }
-
-    // 開発環境（localhost）では、既存の動作を維持（/student/loginにリダイレクト）
-    if (isDevelopment) {
-      return NextResponse.redirect(new URL('/student/login', request.url))
-    }
   }
 
   return NextResponse.next()
