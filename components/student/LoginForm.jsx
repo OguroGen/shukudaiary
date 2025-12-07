@@ -67,8 +67,13 @@ export default function LoginForm() {
       localStorage.setItem('student_id', data.student_id)
       localStorage.setItem('student_nickname', data.nickname)
 
-      // Redirect to home
-      router.push('/student/home')
+      // スラッグがある場合は新しいURL形式にリダイレクト
+      // ない場合は旧URL形式を維持
+      if (data.school_slug) {
+        router.push(`/student/${data.school_slug}/home`)
+      } else {
+        router.push('/student/home')
+      }
     } catch (err) {
       setError('ログインに失敗しました')
     } finally {

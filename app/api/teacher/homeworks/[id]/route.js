@@ -106,3 +106,73 @@ export async function PUT(request, { params }) {
   }
 }
 
+export async function DELETE(request, { params }) {
+  try {
+    const resolvedParams = await Promise.resolve(params)
+    const homeworkId = resolvedParams.id
+    const supabase = await createClient()
+
+    // Check authentication
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Get teacher's branch_id from teacher_branches (MVP: 1教場固定)
+    const { data: teacherBranch } = await supabase
+      .from('teacher_branches')
+      .select('branch_id')
+      .eq('teacher_id', session.user.id)
+      .limit(1)
+      .single()
+
+    if (!teacherBranch) {
+      return NextResponse.json({ error: 'Teacher branch not found' }, { status: 404 })
+    }
+
+    // Get homework and verify it belongs to teacher's branch
+    const { data: homework } = await supabase
+      .from('homeworks')
+      .select('*, students(branch_id)')
+      .eq('id', homeworkId)
+      .single()
+
+    if (!homework) {
+      return NextResponse.json(
+        { error: 'Homework not found' },
+        { status: 404 }
+      )
+    }
+
+    if (homework.students?.branch_id !== teacherBranch.branch_id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 403 }
+      )
+    }
+
+    // Delete homework (answers will be deleted automatically due to ON DELETE CASCADE)
+    const { error } = await supabase
+      .from('homeworks')
+      .delete()
+      .eq('id', homeworkId)
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to delete homework' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+

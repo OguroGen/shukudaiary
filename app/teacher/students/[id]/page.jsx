@@ -181,7 +181,7 @@ export default function StudentDetailPage() {
                         </p>
                       </div>
                       <Link
-                        href={`/teacher/homeworks/${homework.id}`}
+                        href={`/teacher/homeworks/${homework.id}?from=student&student_id=${student.id}`}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                       >
                         開く

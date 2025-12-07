@@ -86,11 +86,11 @@ export async function POST(request) {
       )
     }
 
-    // Check if login_id already exists in this branch (教場単位でチェック)
+    // Check if login_id already exists in this school (School単位でチェック)
     const { data: existing } = await supabase
       .from('students')
       .select('id')
-      .eq('branch_id', teacherBranch.branch_id)
+      .eq('school_id', teacher.school_id)
       .eq('login_id', login_id)
       .single()
 

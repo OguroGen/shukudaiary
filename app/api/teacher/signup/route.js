@@ -6,7 +6,7 @@ import { validateTeacherSignupData } from '@/lib/validation/teacher'
 export async function POST(request) {
   try {
     const supabase = await createClient()
-    const { school_name, email, password, plan_type = 'free' } = await request.json()
+    const { school_name, school_slug, email, password, plan_type = 'free' } = await request.json()
 
     // ============================================
     // 1. バリデーション
@@ -24,10 +24,48 @@ export async function POST(request) {
       )
     }
 
+    // スラッグのバリデーション
+    if (!school_slug || school_slug.trim().length === 0) {
+      return NextResponse.json(
+        { error: '教室URLは必須です' },
+        { status: 400 }
+      )
+    }
+
+    if (!/^[a-z0-9-]+$/.test(school_slug)) {
+      return NextResponse.json(
+        { error: '教室URLは英数字とハイフンのみ使用可能です' },
+        { status: 400 }
+      )
+    }
+
+    if (school_slug.length < 3 || school_slug.length > 50) {
+      return NextResponse.json(
+        { error: '教室URLは3文字以上50文字以内で入力してください' },
+        { status: 400 }
+      )
+    }
+
     // プランタイプの検証（現状はfreeのみ許可）
     if (plan_type !== 'free') {
       return NextResponse.json(
         { error: '現在はFreeプランのみ選択可能です' },
+        { status: 400 }
+      )
+    }
+
+    // ============================================
+    // 1-1. スラッグの重複チェック
+    // ============================================
+    const { data: existingSchool } = await supabase
+      .from('schools')
+      .select('id')
+      .eq('slug', school_slug)
+      .maybeSingle()
+
+    if (existingSchool) {
+      return NextResponse.json(
+        { error: 'このURLは既に使用されています。別のURLを入力してください。' },
         { status: 400 }
       )
     }
@@ -98,6 +136,7 @@ export async function POST(request) {
         existingAuthUser.id,
         email,
         school_name,
+        school_slug,
         plan_type
       )
 
@@ -169,6 +208,7 @@ export async function POST(request) {
       userId,
       email,
       school_name,
+      school_slug,
       plan_type
     )
 
@@ -205,9 +245,10 @@ export async function POST(request) {
  * @param {string} userId - Supabase AuthのユーザーID
  * @param {string} email - メールアドレス
  * @param {string} school_name - 教室名
+ * @param {string} school_slug - 教室スラッグ
  * @param {string} plan_type - プランタイプ
  */
-async function createSchoolAndTeacher(supabase, userId, email, school_name, plan_type) {
+async function createSchoolAndTeacher(supabase, userId, email, school_name, school_slug, plan_type) {
   try {
     // 1. School作成
     // Service Role Keyを使っているため、RLSをバイパスして作成可能
@@ -215,6 +256,7 @@ async function createSchoolAndTeacher(supabase, userId, email, school_name, plan
       .from('schools')
       .insert({
         name: school_name,
+        slug: school_slug,
         plan_type: plan_type || 'free',
       })
       .select()

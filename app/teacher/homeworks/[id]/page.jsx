@@ -1,14 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useEffect, useState, Suspense } from 'react'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
-export default function HomeworkDetailPage() {
+function HomeworkDetailPageContent() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const homeworkId = params.id
+  const from = searchParams.get('from') // 'student' or null
+  const studentId = searchParams.get('student_id')
 
   const [homework, setHomework] = useState(null)
   const [studentName, setStudentName] = useState('')
@@ -17,6 +20,7 @@ export default function HomeworkDetailPage() {
   const [editingQuestions, setEditingQuestions] = useState([])
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -163,31 +167,88 @@ export default function HomeworkDetailPage() {
     }
   }
 
+  const handleDelete = async () => {
+    let confirmMessage = ''
+    if (answers.length > 0) {
+      confirmMessage = `⚠️ 警告：この宿題には回答が${answers.length}件あります。\n\n削除すると以下が全て削除されます：\n- 宿題データ\n- ${answers.length}件の回答データ\n\nこの操作は取り消せません。本当に削除しますか？`
+    } else {
+      confirmMessage = 'この宿題を削除しますか？'
+    }
+
+    if (!confirm(confirmMessage)) {
+      return
+    }
+
+    setDeleting(true)
+    try {
+      const response = await fetch(`/api/teacher/homeworks/${homeworkId}`, {
+        method: 'DELETE',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        alert(data.error || '宿題の削除に失敗しました')
+        return
+      }
+
+      // 削除成功後、元のページに戻る
+      if (from === 'student' && studentId) {
+        router.push(`/teacher/students/${studentId}`)
+      } else {
+        router.push('/teacher/homeworks')
+      }
+    } catch (error) {
+      alert('宿題の削除に失敗しました')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   const canEdit = answers.length === 0
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-start mb-4">
             <div>
               <h1 className="text-2xl font-semibold">
                 宿題 #{homework.id.slice(0, 8)} - {studentName}
               </h1>
             </div>
-            <div className="flex gap-2">
-              <Link
-                href="/teacher/home"
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
-              >
-                ホームに戻る
-              </Link>
-              <Link
-                href="/teacher/homeworks"
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
-              >
-                宿題一覧に戻る
-              </Link>
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex gap-2">
+                {from === 'student' && studentId ? (
+                  <Link
+                    href={`/teacher/students/${studentId}`}
+                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+                  >
+                    生徒詳細に戻る
+                  </Link>
+                ) : (
+                  <Link
+                    href="/teacher/homeworks"
+                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+                  >
+                    宿題一覧に戻る
+                  </Link>
+                )}
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {deleting ? '削除中...' : '削除'}
+                </button>
+              </div>
+              {answers.length > 0 && (
+                <div className="px-4 py-2 bg-yellow-100 dark:bg-yellow-900 border border-yellow-400 dark:border-yellow-700 rounded-lg">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200 font-semibold">
+                    ⚠️ 注意：この宿題には回答が{answers.length}件あります。削除すると回答も全て削除されます。
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -391,6 +452,18 @@ export default function HomeworkDetailPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function HomeworkDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <div>読み込み中...</div>
+      </div>
+    }>
+      <HomeworkDetailPageContent />
+    </Suspense>
   )
 }
 

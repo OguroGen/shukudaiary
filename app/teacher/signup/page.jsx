@@ -9,6 +9,7 @@ import PlanSelector from '@/components/teacher/PlanSelector'
 export default function TeacherSignupPage() {
   const router = useRouter()
   const [schoolName, setSchoolName] = useState('')
+  const [schoolSlug, setSchoolSlug] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [selectedPlan, setSelectedPlan] = useState('free')
@@ -47,6 +48,7 @@ export default function TeacherSignupPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           school_name: schoolName,
+          school_slug: schoolSlug,
           email,
           password,
           plan_type: selectedPlan,
@@ -114,6 +116,37 @@ export default function TeacherSignupPage() {
             />
             {errors.school_name && (
               <p className="text-red-600 text-sm mt-1">{errors.school_name}</p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="school_slug" className="block text-sm font-medium mb-1">
+              教室URL <span className="text-red-500">*</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 text-sm whitespace-nowrap">shukudaiary.anzan.online/student/</span>
+              <input
+                id="school_slug"
+                type="text"
+                value={schoolSlug}
+                onChange={(e) => {
+                  const cleaned = e.target.value
+                    .toLowerCase()
+                    .replace(/[^a-z0-9-]/g, '')
+                    .replace(/^-+|-+$/g, '')
+                  setSchoolSlug(cleaned)
+                }}
+                required
+                pattern="[a-z0-9-]+"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="tokyo-soroban"
+              />
+            </div>
+            <p className="text-sm text-gray-500 mt-1">
+              英数字とハイフンのみ使用可能（例: tokyo-soroban）
+            </p>
+            {errors.school_slug && (
+              <p className="text-red-600 text-sm mt-1">{errors.school_slug}</p>
             )}
           </div>
 

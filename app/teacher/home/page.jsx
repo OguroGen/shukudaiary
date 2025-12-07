@@ -9,8 +9,17 @@ export default function TeacherHomePage() {
   const router = useRouter()
   const [teacherName, setTeacherName] = useState('')
   const [schoolName, setSchoolName] = useState('')
+  const [schoolSlug, setSchoolSlug] = useState('')
+  const [baseUrl, setBaseUrl] = useState('')
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // ベースURLを取得（クライアントサイドのみ）
+    if (typeof window !== 'undefined') {
+      setBaseUrl(window.location.origin)
+    }
+  }, [])
 
   useEffect(() => {
     const supabase = createClient()
@@ -24,7 +33,7 @@ export default function TeacherHomePage() {
       // Get teacher and school info in one query
       supabase
         .from('teachers')
-        .select('id, school_id, email, schools(name)')
+        .select('id, school_id, email, schools(name, slug)')
         .eq('id', session.user.id)
         .single()
         .then(({ data: teacher, error }) => {
@@ -37,6 +46,7 @@ export default function TeacherHomePage() {
           if (teacher.schools && typeof teacher.schools === 'object') {
             const school = teacher.schools
             setSchoolName(school.name)
+            setSchoolSlug(school.slug)
           }
 
           const today = new Date().toISOString().split('T')[0]
@@ -132,6 +142,49 @@ export default function TeacherHomePage() {
           </div>
         </div>
 
+        {/* 生徒用URL表示 */}
+        {schoolSlug && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 rounded-lg shadow-lg p-6 mb-4">
+            <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+              <span>📋</span>
+              <span>生徒用ログインURL</span>
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+              このURLを生徒に配布してください
+            </p>
+            <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 mb-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-gray-500 dark:text-gray-400 text-sm">
+                  {baseUrl}/student/
+                </span>
+                <span className="text-blue-600 dark:text-blue-400 font-mono font-semibold text-lg">
+                  {schoolSlug}/login
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                const url = `${baseUrl}/student/${schoolSlug}/login`
+                navigator.clipboard.writeText(url).then(() => {
+                  alert('URLをクリップボードにコピーしました')
+                }).catch(() => {
+                  // フォールバック: テキストを選択
+                  const textArea = document.createElement('textarea')
+                  textArea.value = url
+                  document.body.appendChild(textArea)
+                  textArea.select()
+                  document.execCommand('copy')
+                  document.body.removeChild(textArea)
+                  alert('URLをクリップボードにコピーしました')
+                })
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+            >
+              📋 URLをコピー
+            </button>
+          </div>
+        )}
+
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
@@ -151,7 +204,7 @@ export default function TeacherHomePage() {
 
         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-semibold mb-4">メニュー</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Link
               href="/teacher/students"
               className="px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center"
@@ -169,6 +222,12 @@ export default function TeacherHomePage() {
               className="px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center"
             >
               プリセット管理
+            </Link>
+            <Link
+              href="/teacher/settings"
+              className="px-6 py-4 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-center"
+            >
+              設定
             </Link>
           </div>
         </div>

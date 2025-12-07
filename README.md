@@ -50,6 +50,10 @@ SupabaseダッシュボードのSQL Editorで、以下のマイグレーショ�
 5. `supabase/migrations/005_add_branches.sql` - 教場（branches）機能の追加
 6. `supabase/migrations/006_add_teacher_role.sql` - 先生のroleカラム追加（オーナー機能）
 7. `supabase/migrations/007_add_signup_policies.sql` - サインアップ時のRLSポリシー追加（**重要：サインアップ機能を使用する場合は必須**）
+8. `supabase/migrations/008_add_test_plan.sql` - テストプランの追加
+9. `supabase/migrations/009_fix_student_login_id_unique.sql` - 生徒のlogin_idのユニーク制約をSchool単位に修正（**重要：005_add_branches.sql実行後は必須**）
+10. `supabase/migrations/010_add_school_slug.sql` - 教室スラッグ（slug）機能の追加
+11. `supabase/migrations/011_make_school_slug_not_null.sql` - 教室スラッグ（slug）をNOT NULLに変更（**重要：すべての教室にスラッグを設定してから実行**）
 
 これにより以下のテーブルが作成されます:
 - `schools`: 教室情報
@@ -287,12 +291,38 @@ VALUES (
 - UI: `app/teacher/settings/page.jsx`（新規作成）
 - バリデーション: `lib/plans.js`に関数追加
 
-**教場専用ログインURL機能**
+**教室スラッグ機能（実装済み）**
+
+各教室にスラッグ（URL識別子）を追加し、教室ごとの専用URLを実現しました。これにより、生徒用ページに教室名を表示できるようになりました。
+
+実装内容：
+- ログインURL形式: `/student/[school_slug]/login`
+- すべての生徒ページに教室名を表示（Layoutで実装）
+- ログイン時にスラッグを取得し、新しいURL形式にリダイレクト
+- サインアップ時にスラッグを入力（英数字とハイフンのみ）
+
+実装場所：
+- `supabase/migrations/010_add_school_slug.sql` - schoolsテーブルにslugカラムを追加
+- `supabase/migrations/011_make_school_slug_not_null.sql` - slugカラムにNOT NULL制約を追加
+- `app/api/schools/[slug]/route.js` - スラッグから教室名を取得するAPI
+- `app/student/[school_slug]/layout.jsx` - 教室名を表示するLayout
+- `app/student/[school_slug]/` - 新しいルーティング構造（login, home, homework, password）
+- `app/api/teacher/signup/route.js` - サインアップ時にスラッグを保存
+- `app/api/student/login/route.js` - ログイン時にスラッグを返す
+- `components/student/LoginForm.jsx` - ログイン後のリダイレクト処理
+- `app/teacher/home/page.jsx` - 生徒用ログインURLの表示
+- `app/teacher/settings/page.jsx` - スラッグ変更機能
+
+既存教室への対応：
+- すべての教室にスラッグが設定されています
+- スラッグはNOT NULL制約により必須となっています
+
+**教場専用ログインURL機能（将来実装予定）**
 
 各教場から発行する生徒用のログインURLを教場専用にし、そのURLからアクセスした場合はその教場の生徒のみがログインできるようにします。
 
 実装内容：
-- ログインURL形式: `/student/login?branch=<branch_id>`
+- ログインURL形式: `/student/[school_slug]/login?branch=<branch_id>` または `/student/[school_slug]/login?branch=<branch_token>`
 - ログイン処理で`branch_id`と`login_id`の組み合わせで検索
 - 先生側のホームページや生徒管理画面に教場専用URLを表示・コピー機能を追加
 
@@ -304,8 +334,9 @@ VALUES (
 
 背景：
 - 現在、異なる教場に同じ`login_id`と`password`を持つ生徒がいる場合、どちらの教場からでもログインできてしまう問題がある
-- データベース制約では`UNIQUE(branch_id, login_id)`により教場内でのユニーク性は担保されているが、ログイン処理で教場を考慮していない
+- データベース制約では`UNIQUE(school_id, login_id)`によりSchool単位でのユニーク性は担保されているが、ログイン処理で教場を考慮していない
 - 教場専用URLにより、URLに含まれる`branch_id`で正しい教場の生徒のみがログインできるようになる
+- 注意: 生徒ID（`login_id`）のユニーク制約はSchool単位。同じSchool内の異なる教場でも同じ`login_id`は使用できない
 
 ## プロジェクト構造
 
