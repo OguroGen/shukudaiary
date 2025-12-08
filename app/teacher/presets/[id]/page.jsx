@@ -254,7 +254,7 @@ export default function PresetEditPage() {
                   onChange={(e) => setType(e.target.value)}
                   className="mr-2"
                 />
-                見取り算
+                見取算
               </label>
             </div>
           </div>

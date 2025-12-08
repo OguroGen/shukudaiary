@@ -150,7 +150,7 @@ export default function StudentHomePage() {
                       ? '✖️ かけ算'
                       : homework.type === 'div'
                       ? '➗ わり算'
-                      : '➕ 見取り算'}
+                      : '➕ 見取算'}
                   </h3>
                   <p className="text-xs text-gray-700 mb-1 font-semibold">
                     {homework.question_count}問

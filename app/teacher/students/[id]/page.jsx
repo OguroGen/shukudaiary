@@ -12,6 +12,8 @@ export default function StudentDetailPage() {
 
   const [student, setStudent] = useState(null)
   const [homeworks, setHomeworks] = useState([])
+  const [todayHomeworks, setTodayHomeworks] = useState([])
+  const [historyHomeworks, setHistoryHomeworks] = useState([])
   const [wrongAnswers, setWrongAnswers] = useState([])
   const [stats, setStats] = useState(null)
   const [weaknessAnalysis, setWeaknessAnalysis] = useState(null)
@@ -53,6 +55,51 @@ export default function StudentDetailPage() {
 
       if (homeworksData) {
         setHomeworks(homeworksData)
+        
+        // Get answer counts for each homework
+        const homeworkIds = homeworksData.map((h) => h.id)
+        const { data: answerCounts } = await supabase
+          .from('answers')
+          .select('homework_id')
+          .in('homework_id', homeworkIds)
+
+        // Count answers per homework
+        const answerCountMap = new Map()
+        if (answerCounts) {
+          answerCounts.forEach((answer) => {
+            if (answer.homework_id) {
+              const count = answerCountMap.get(answer.homework_id) || 0
+              answerCountMap.set(answer.homework_id, count + 1)
+            }
+          })
+        }
+
+        // Add answer count to each homework
+        const homeworksWithAnswerCount = homeworksData.map((hw) => ({
+          ...hw,
+          answerCount: answerCountMap.get(hw.id) || 0
+        }))
+
+        // Separate into today's homeworks and history
+        const today = new Date().toISOString().split('T')[0]
+        const todayHw = []
+        const historyHw = []
+
+        homeworksWithAnswerCount.forEach((hw) => {
+          const isInPeriod = hw.start_date <= today && today <= hw.end_date
+          const isCompleted = hw.answerCount >= hw.question_count
+          
+          if (isInPeriod && !isCompleted) {
+            // 今日の宿題：期限が今日を含んでまだ終了していないもの
+            todayHw.push(hw)
+          } else {
+            // 宿題履歴：期限が過ぎているものと終了しているもの
+            historyHw.push(hw)
+          }
+        })
+
+        setTodayHomeworks(todayHw)
+        setHistoryHomeworks(historyHw)
       }
 
       // Get all answers for statistics
@@ -288,6 +335,12 @@ export default function StudentDetailPage() {
               >
                 生徒一覧
               </Link>
+              <Link
+                href={`/teacher/homeworks/create?student_id=${studentId}&from=student`}
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+              >
+                宿題を作成
+              </Link>
               <button
                 onClick={handleResetPassword}
                 disabled={resettingPassword}
@@ -358,7 +411,7 @@ export default function StudentDetailPage() {
               {[
                 { type: 'mul', name: 'かけ算', color: 'from-blue-500 to-cyan-600' },
                 { type: 'div', name: 'わり算', color: 'from-purple-500 to-pink-600' },
-                { type: 'mitori', name: '見取り算', color: 'from-emerald-500 to-teal-600' }
+                { type: 'mitori', name: '見取算', color: 'from-emerald-500 to-teal-600' }
               ].map(({ type, name, color }) => {
                 const accuracy = parseFloat(stats.typeAccuracies[type] || 0)
                 const typeStat = stats.typeStats[type]
@@ -403,7 +456,7 @@ export default function StudentDetailPage() {
               <div className="mb-6 p-4 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800 rounded-xl">
                 <p className="text-sm font-semibold text-red-700 dark:text-red-300 mb-1">最も苦手な種目</p>
                 <p className="text-lg font-bold text-red-800 dark:text-red-200">
-                  {weaknessAnalysis.weakestType === 'mul' ? 'かけ算' : weaknessAnalysis.weakestType === 'div' ? 'わり算' : '見取り算'}
+                  {weaknessAnalysis.weakestType === 'mul' ? 'かけ算' : weaknessAnalysis.weakestType === 'div' ? 'わり算' : '見取算'}
                 </p>
               </div>
             )}
@@ -426,30 +479,30 @@ export default function StudentDetailPage() {
           </div>
         )}
 
-        {/* 宿題履歴 */}
+        {/* 今日の宿題 */}
         <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6 mb-6">
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            宿題履歴
+            今日の宿題
           </h2>
-          {homeworks.length === 0 ? (
+          {todayHomeworks.length === 0 ? (
             <div className="text-center py-12">
               <svg className="w-16 h-16 text-slate-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <p className="text-slate-600 dark:text-slate-400 font-medium">宿題はまだありません。</p>
+              <p className="text-slate-600 dark:text-slate-400 font-medium">今日の宿題はありません。</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {homeworks.map((homework) => {
+              {todayHomeworks.map((homework) => {
                 const typeName =
                   homework.type === 'mul'
                     ? 'かけ算'
                     : homework.type === 'div'
                     ? 'わり算'
-                    : '見取り算'
+                    : '見取算'
                 const typeColors = {
                   mul: 'from-blue-500 to-cyan-600',
                   div: 'from-purple-500 to-pink-600',
@@ -469,6 +522,77 @@ export default function StudentDetailPage() {
                           <span className="text-slate-500 dark:text-slate-400 text-sm font-mono">
                             #{homework.id.slice(0, 8)}
                           </span>
+                        </div>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          期間: {new Date(homework.start_date).toLocaleDateString('ja-JP')} ~ {new Date(homework.end_date).toLocaleDateString('ja-JP')}
+                        </p>
+                        <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+                          作成日: {new Date(homework.created_at).toLocaleDateString('ja-JP')}
+                        </p>
+                      </div>
+                      <Link
+                        href={`/teacher/homeworks/${homework.id}?from=student&student_id=${student.id}`}
+                        className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap"
+                      >
+                        詳細を見る
+                      </Link>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* 宿題履歴 */}
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6 mb-6">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            宿題履歴
+          </h2>
+          {historyHomeworks.length === 0 ? (
+            <div className="text-center py-12">
+              <svg className="w-16 h-16 text-slate-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-slate-600 dark:text-slate-400 font-medium">宿題履歴はまだありません。</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {historyHomeworks.map((homework) => {
+                const typeName =
+                  homework.type === 'mul'
+                    ? 'かけ算'
+                    : homework.type === 'div'
+                    ? 'わり算'
+                    : '見取算'
+                const typeColors = {
+                  mul: 'from-blue-500 to-cyan-600',
+                  div: 'from-purple-500 to-pink-600',
+                  mitori: 'from-emerald-500 to-teal-600'
+                }
+                const isCompleted = homework.answerCount >= homework.question_count
+                return (
+                  <div
+                    key={homework.id}
+                    className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 hover:shadow-lg transition-all duration-200"
+                  >
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className={`px-3 py-1 bg-gradient-to-r ${typeColors[homework.type]} text-white rounded-lg text-sm font-bold`}>
+                            {typeName}
+                          </span>
+                          <span className="text-slate-500 dark:text-slate-400 text-sm font-mono">
+                            #{homework.id.slice(0, 8)}
+                          </span>
+                          {isCompleted && (
+                            <span className="px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 rounded text-xs font-semibold">
+                              完了
+                            </span>
+                          )}
                         </div>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
                           期間: {new Date(homework.start_date).toLocaleDateString('ja-JP')} ~ {new Date(homework.end_date).toLocaleDateString('ja-JP')}

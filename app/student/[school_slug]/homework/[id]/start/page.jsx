@@ -63,7 +63,7 @@ export default function HomeworkStartPage() {
       ? '✖️ かけ算'
       : homework.type === 'div'
       ? '➗ わり算'
-      : '➕ 見取り算'
+      : '➕ 見取算'
 
   return (
     <div className="min-h-screen bg-yellow-50 p-2">

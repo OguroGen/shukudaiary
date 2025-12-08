@@ -93,7 +93,7 @@ function HomeworkDetailPageContent() {
       ? 'かけ算'
       : homework.type === 'div'
       ? 'わり算'
-      : '見取り算'
+      : '見取算'
 
   const correctCount = answers.filter((a) => a.is_correct).length
 

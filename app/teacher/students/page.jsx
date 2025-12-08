@@ -247,7 +247,7 @@ export default function StudentsListPage() {
                             詳細
                           </Link>
                           <Link
-                            href={`/teacher/homeworks/create?student_id=${student.id}`}
+                            href={`/teacher/homeworks/create?student_id=${student.id}&from=students`}
                             className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
                           >
                             宿題を作成

@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 export default function PresetsListPage() {
   const router = useRouter()
   const [presets, setPresets] = useState([])
+  const [selectedTypes, setSelectedTypes] = useState(['mul', 'div', 'mitori']) // 初期値はすべて選択
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -75,14 +76,6 @@ export default function PresetsListPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div>読み込み中...</div>
-      </div>
-    )
-  }
-
   const getTypeName = (type) => {
     switch (type) {
       case 'mul':
@@ -90,85 +83,183 @@ export default function PresetsListPage() {
       case 'div':
         return 'わり算'
       case 'mitori':
-        return '見取り算'
+        return '見取算'
       default:
         return type
     }
   }
 
-  const getDetails = (preset) => {
-    if (preset.type === 'mitori') {
-      return `行数=${preset.rows}, 問題数=${preset.question_count}`
-    } else {
-      return `左=${preset.left_digits}桁, 右=${preset.right_digits}桁, 問題数=${preset.question_count}`
+  const getTypeColor = (type) => {
+    switch (type) {
+      case 'mul':
+        return 'from-blue-500 to-cyan-600'
+      case 'div':
+        return 'from-purple-500 to-pink-600'
+      case 'mitori':
+        return 'from-emerald-500 to-teal-600'
+      default:
+        return 'from-slate-500 to-slate-600'
     }
   }
 
+  const getDetails = (preset) => {
+    if (preset.type === 'mitori') {
+      return `行数: ${preset.rows}, 問題数: ${preset.question_count}`
+    } else {
+      return `左: ${preset.left_digits}桁, 右: ${preset.right_digits}桁, 問題数: ${preset.question_count}`
+    }
+  }
+
+  const toggleType = (type) => {
+    setSelectedTypes(prev => 
+      prev.includes(type) 
+        ? prev.filter(t => t !== type)
+        : [...prev, type]
+    )
+  }
+
+  // 種目別にプリセットを分類
+  const presetsByType = {
+    mul: presets.filter(p => p.type === 'mul'),
+    div: presets.filter(p => p.type === 'div'),
+    mitori: presets.filter(p => p.type === 'mitori')
+  }
+
+  const typeOptions = [
+    { value: 'mul', name: 'かけ算', color: 'from-blue-500 to-cyan-600' },
+    { value: 'div', name: 'わり算', color: 'from-purple-500 to-pink-600' },
+    { value: 'mitori', name: '見取算', color: 'from-emerald-500 to-teal-600' }
+  ]
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-slate-600 dark:text-slate-400 font-medium">読み込み中...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 mb-4">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-semibold">難度プリセット</h1>
-            <div className="flex gap-2">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* ヘッダー */}
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6 mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">
+              プリセット管理
+            </h1>
+            <div className="flex gap-3">
               <Link
                 href="/teacher/home"
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+                className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
               >
                 ホームに戻る
               </Link>
               <Link
                 href="/teacher/presets/new"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl hover:from-cyan-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
               >
                 プリセットを追加
               </Link>
             </div>
           </div>
+
+          {/* 種目トグルボタン */}
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-3">表示する種目</h2>
+            <div className="flex flex-wrap gap-3">
+              {typeOptions.map((option) => {
+                const isSelected = selectedTypes.includes(option.value)
+                return (
+                  <button
+                    key={option.value}
+                    onClick={() => toggleType(option.value)}
+                    className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md ${
+                      isSelected
+                        ? `bg-gradient-to-r ${option.color} text-white`
+                        : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+                    }`}
+                  >
+                    {option.name}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6">
-          {presets.length === 0 ? (
-            <p className="text-gray-600">プリセットはまだありません。</p>
-          ) : (
-            <div className="space-y-4">
-              {presets.map((preset) => (
+        {/* プリセット一覧（種目別） */}
+        {presets.length === 0 ? (
+          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6">
+            <div className="text-center py-12">
+              <svg className="w-16 h-16 text-slate-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
+              </svg>
+              <p className="text-slate-600 dark:text-slate-400 font-medium">プリセットはまだありません。</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {typeOptions.map((option) => {
+              const typePresets = presetsByType[option.value]
+              if (!selectedTypes.includes(option.value) || typePresets.length === 0) {
+                return null
+              }
+
+              return (
                 <div
-                  key={preset.id}
-                  className="border border-gray-200 rounded-lg p-4"
+                  key={option.value}
+                  className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6"
                 >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-semibold">
-                        名前: {preset.name}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        種目: {getTypeName(preset.type)}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        詳細: {getDetails(preset)}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Link
-                        href={`/teacher/presets/${preset.id}`}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
+                    <span className={`px-3 py-1 bg-gradient-to-r ${option.color} text-white rounded-lg text-sm font-bold`}>
+                      {option.name}
+                    </span>
+                    <span className="text-slate-500 dark:text-slate-400 text-sm font-normal">
+                      ({typePresets.length}件)
+                    </span>
+                  </h2>
+                  <div className="space-y-3">
+                    {typePresets.map((preset) => (
+                      <div
+                        key={preset.id}
+                        className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 hover:shadow-lg transition-all duration-200"
                       >
-                        編集
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(preset.id)}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                      >
-                        削除
-                      </button>
-                    </div>
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">
+                              {preset.name}
+                            </h3>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
+                              {getDetails(preset)}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Link
+                              href={`/teacher/presets/${preset.id}`}
+                              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap"
+                            >
+                              編集
+                            </Link>
+                            <button
+                              onClick={() => handleDelete(preset.id)}
+                              className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl hover:from-red-700 hover:to-pink-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap"
+                            >
+                              削除
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )

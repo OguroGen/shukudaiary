@@ -236,11 +236,18 @@ function HomeworkCreatePageContent() {
         }
       }
 
-      // 生徒一覧から来た場合（student_idパラメータがある場合）は生徒一覧に戻る
+      // 元のページに戻る
+      const from = searchParams.get('from')
       const studentIdFromUrl = searchParams.get('student_id')
-      if (studentIdFromUrl) {
+      
+      if (from === 'students') {
+        // 生徒一覧から来た場合
         router.push('/teacher/students')
+      } else if (from === 'student' && studentIdFromUrl) {
+        // 生徒詳細から来た場合
+        router.push(`/teacher/students/${studentIdFromUrl}`)
       } else {
+        // その他の場合（宿題一覧からなど）
         router.push('/teacher/homeworks')
       }
     } catch (error) {
@@ -329,7 +336,7 @@ function HomeworkCreatePageContent() {
                   onChange={(e) => setType(e.target.value)}
                   className="mr-2"
                 />
-                見取り算
+                見取算
               </label>
             </div>
             {errors.type && (
@@ -649,7 +656,17 @@ function HomeworkCreatePageContent() {
               {loading ? '作成中...' : '作成'}
             </button>
             <Link
-              href="/teacher/homeworks"
+              href={(() => {
+                const from = searchParams.get('from')
+                const studentId = searchParams.get('student_id')
+                if (from === 'students') {
+                  return '/teacher/students'
+                } else if (from === 'student' && studentId) {
+                  return `/teacher/students/${studentId}`
+                } else {
+                  return '/teacher/homeworks'
+                }
+              })()}
               className="flex-1 px-6 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 text-center"
             >
               キャンセル

@@ -93,10 +93,10 @@ export default function HomeworksListPage() {
           }
         })
         setAllHomeworks(formatted)
-        // Initial filter: show only incomplete (not completed)
+        // Initial filter: show only homeworks where today is within the period
+        const today = new Date().toISOString().split('T')[0]
         const filtered = formatted.filter((hw) => {
-          const status = getCompletionStatus(hw)
-          return status !== 'completed'
+          return hw.start_date <= today && today <= hw.end_date
         })
         setHomeworks(filtered)
       }
@@ -150,11 +150,11 @@ export default function HomeworksListPage() {
   useEffect(() => {
     let filtered = [...allHomeworks]
 
-    // Status filter (initial: show only incomplete)
+    // Period filter (initial: show only homeworks where today is within the period)
     if (!showAll) {
+      const today = new Date().toISOString().split('T')[0]
       filtered = filtered.filter((hw) => {
-        const status = getCompletionStatus(hw)
-        return status !== 'completed'
+        return hw.start_date <= today && today <= hw.end_date
       })
     }
 
@@ -304,7 +304,7 @@ export default function HomeworksListPage() {
                 <option value="">すべて</option>
                 <option value="mul">かけ算</option>
                 <option value="div">わり算</option>
-                <option value="mitori">見取り算</option>
+                <option value="mitori">見取算</option>
               </select>
             </div>
 
@@ -371,7 +371,7 @@ export default function HomeworksListPage() {
                     ? 'かけ算'
                     : homework.type === 'div'
                     ? 'わり算'
-                    : '見取り算'
+                    : '見取算'
                 const status = getCompletionStatus(homework)
                 const statusText = getStatusText(status)
                 const statusColor = getStatusColor(status)
