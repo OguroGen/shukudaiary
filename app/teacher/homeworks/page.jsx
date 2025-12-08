@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { getTodayString, isDateInPeriod } from '@/lib/utils/date'
+import { getTypeName, getTypeColor, getCompletionStatus, getStatusText } from '@/lib/utils/homework'
+import LoadingSpinner from '@/components/common/LoadingSpinner'
 
 export default function HomeworksListPage() {
   const router = useRouter()
@@ -94,9 +97,11 @@ export default function HomeworksListPage() {
         })
         setAllHomeworks(formatted)
         // Initial filter: show only homeworks where today is within the period
-        const today = new Date().toISOString().split('T')[0]
+        const today = getTodayString()
         const filtered = formatted.filter((hw) => {
-          return hw.start_date <= today && today <= hw.end_date
+          const startDate = hw.start_date || ''
+          const endDate = hw.end_date || ''
+          return isDateInPeriod(today, startDate, endDate)
         })
         setHomeworks(filtered)
       }
@@ -107,30 +112,10 @@ export default function HomeworksListPage() {
     }
   }
 
-  const getCompletionStatus = (homework) => {
+  const getHomeworkStatus = (homework) => {
     const answerCount = homework.answerCount || 0
     const questionCount = homework.question_count || 0
-
-    if (answerCount === 0) {
-      return 'not_started'
-    } else if (answerCount < questionCount) {
-      return 'in_progress'
-    } else {
-      return 'completed'
-    }
-  }
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'not_started':
-        return '未解答'
-      case 'in_progress':
-        return '解答中'
-      case 'completed':
-        return '完了'
-      default:
-        return '不明'
-    }
+    return getCompletionStatus(answerCount, questionCount)
   }
 
   const getStatusColor = (status) => {
@@ -152,9 +137,11 @@ export default function HomeworksListPage() {
 
     // Period filter (initial: show only homeworks where today is within the period)
     if (!showAll) {
-      const today = new Date().toISOString().split('T')[0]
+      const today = getTodayString()
       filtered = filtered.filter((hw) => {
-        return hw.start_date <= today && today <= hw.end_date
+        const startDate = hw.start_date || ''
+        const endDate = hw.end_date || ''
+        return isDateInPeriod(today, startDate, endDate)
       })
     }
 
@@ -171,7 +158,7 @@ export default function HomeworksListPage() {
     // Status filter (when showAll is true)
     if (showAll && selectedStatus) {
       filtered = filtered.filter((hw) => {
-        const status = getCompletionStatus(hw)
+        const status = getHomeworkStatus(hw)
         return status === selectedStatus
       })
     }
@@ -235,14 +222,7 @@ export default function HomeworksListPage() {
   ])
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-600 dark:text-slate-400 font-medium">読み込み中...</p>
-        </div>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   return (
@@ -304,7 +284,7 @@ export default function HomeworksListPage() {
                 <option value="">すべて</option>
                 <option value="mul">かけ算</option>
                 <option value="div">わり算</option>
-                <option value="mitori">見取算</option>
+                <option value="mitori">{getTypeName('mitori')}</option>
               </select>
             </div>
 
@@ -366,13 +346,8 @@ export default function HomeworksListPage() {
           ) : (
             <div className="space-y-4">
               {homeworks.map((homework) => {
-                const typeName =
-                  homework.type === 'mul'
-                    ? 'かけ算'
-                    : homework.type === 'div'
-                    ? 'わり算'
-                    : '見取算'
-                const status = getCompletionStatus(homework)
+                const typeName = getTypeName(homework.type)
+                const status = getHomeworkStatus(homework)
                 const statusText = getStatusText(status)
                 const statusColor = getStatusColor(status)
                 const answerCount = homework.answerCount || 0

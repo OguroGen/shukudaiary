@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { getTypeName } from '@/lib/utils/homework'
 import { validateHomeworkData } from '@/lib/validation/homework'
 import {
   generateMultiplicationQuestions,
@@ -336,7 +337,7 @@ function HomeworkCreatePageContent() {
                   onChange={(e) => setType(e.target.value)}
                   className="mr-2"
                 />
-                見取算
+                {getTypeName('mitori')}
               </label>
             </div>
             {errors.type && (

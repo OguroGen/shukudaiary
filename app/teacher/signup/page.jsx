@@ -137,7 +137,7 @@ export default function TeacherSignupPage() {
                   setSchoolSlug(cleaned)
                 }}
                 required
-                pattern="[a-z0-9-]+"
+                pattern="[a-z0-9\-]+"
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="tokyo-soroban"
               />

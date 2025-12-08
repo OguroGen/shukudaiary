@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { getTypeName } from '@/lib/utils/homework'
 
 function HomeworkDetailPageContent() {
   const router = useRouter()
@@ -88,12 +89,7 @@ function HomeworkDetailPageContent() {
     )
   }
 
-  const typeName =
-    homework.type === 'mul'
-      ? 'かけ算'
-      : homework.type === 'div'
-      ? 'わり算'
-      : '見取算'
+  const typeName = getTypeName(homework.type)
 
   const correctCount = answers.filter((a) => a.is_correct).length
 

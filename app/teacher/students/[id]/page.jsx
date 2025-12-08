@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { getTodayString, isDateInPeriod } from '@/lib/utils/date'
+import { getTypeName, getTypeColor, getCompletionStatus } from '@/lib/utils/homework'
+import LoadingSpinner from '@/components/common/LoadingSpinner'
 
 export default function StudentDetailPage() {
   const router = useRouter()
@@ -58,20 +61,25 @@ export default function StudentDetailPage() {
         
         // Get answer counts for each homework
         const homeworkIds = homeworksData.map((h) => h.id)
-        const { data: answerCounts } = await supabase
-          .from('answers')
-          .select('homework_id')
-          .in('homework_id', homeworkIds)
+        let answerCountMap = new Map()
+        
+        // 空配列チェック
+        if (homeworkIds.length > 0) {
+          const { data: answerCounts, error: answerError } = await supabase
+            .from('answers')
+            .select('homework_id')
+            .in('homework_id', homeworkIds)
 
-        // Count answers per homework
-        const answerCountMap = new Map()
-        if (answerCounts) {
-          answerCounts.forEach((answer) => {
-            if (answer.homework_id) {
-              const count = answerCountMap.get(answer.homework_id) || 0
-              answerCountMap.set(answer.homework_id, count + 1)
-            }
-          })
+          if (answerError) {
+            console.error('Failed to load answer counts:', answerError)
+          } else if (answerCounts) {
+            answerCounts.forEach((answer) => {
+              if (answer?.homework_id) {
+                const count = answerCountMap.get(answer.homework_id) || 0
+                answerCountMap.set(answer.homework_id, count + 1)
+              }
+            })
+          }
         }
 
         // Add answer count to each homework
@@ -81,13 +89,18 @@ export default function StudentDetailPage() {
         }))
 
         // Separate into today's homeworks and history
-        const today = new Date().toISOString().split('T')[0]
+        const today = getTodayString()
         const todayHw = []
         const historyHw = []
 
         homeworksWithAnswerCount.forEach((hw) => {
-          const isInPeriod = hw.start_date <= today && today <= hw.end_date
-          const isCompleted = hw.answerCount >= hw.question_count
+          const startDate = hw.start_date || ''
+          const endDate = hw.end_date || ''
+          const answerCount = hw.answerCount || 0
+          const questionCount = hw.question_count || 0
+          
+          const isInPeriod = isDateInPeriod(today, startDate, endDate)
+          const isCompleted = answerCount >= questionCount
           
           if (isInPeriod && !isCompleted) {
             // 今日の宿題：期限が今日を含んでまだ終了していないもの
@@ -269,14 +282,7 @@ export default function StudentDetailPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-600 dark:text-slate-400 font-medium">読み込み中...</p>
-        </div>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   if (!student) {
@@ -409,9 +415,9 @@ export default function StudentDetailPage() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
-                { type: 'mul', name: 'かけ算', color: 'from-blue-500 to-cyan-600' },
-                { type: 'div', name: 'わり算', color: 'from-purple-500 to-pink-600' },
-                { type: 'mitori', name: '見取算', color: 'from-emerald-500 to-teal-600' }
+                { type: 'mul', name: getTypeName('mul'), color: getTypeColor('mul') },
+                { type: 'div', name: getTypeName('div'), color: getTypeColor('div') },
+                { type: 'mitori', name: getTypeName('mitori'), color: getTypeColor('mitori') }
               ].map(({ type, name, color }) => {
                 const accuracy = parseFloat(stats.typeAccuracies[type] || 0)
                 const typeStat = stats.typeStats[type]
@@ -456,7 +462,7 @@ export default function StudentDetailPage() {
               <div className="mb-6 p-4 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800 rounded-xl">
                 <p className="text-sm font-semibold text-red-700 dark:text-red-300 mb-1">最も苦手な種目</p>
                 <p className="text-lg font-bold text-red-800 dark:text-red-200">
-                  {weaknessAnalysis.weakestType === 'mul' ? 'かけ算' : weaknessAnalysis.weakestType === 'div' ? 'わり算' : '見取算'}
+                  {getTypeName(weaknessAnalysis.weakestType)}
                 </p>
               </div>
             )}
@@ -497,16 +503,11 @@ export default function StudentDetailPage() {
           ) : (
             <div className="space-y-3">
               {todayHomeworks.map((homework) => {
-                const typeName =
-                  homework.type === 'mul'
-                    ? 'かけ算'
-                    : homework.type === 'div'
-                    ? 'わり算'
-                    : '見取算'
+                const typeName = getTypeName(homework.type)
                 const typeColors = {
-                  mul: 'from-blue-500 to-cyan-600',
-                  div: 'from-purple-500 to-pink-600',
-                  mitori: 'from-emerald-500 to-teal-600'
+                  mul: getTypeColor('mul'),
+                  div: getTypeColor('div'),
+                  mitori: getTypeColor('mitori')
                 }
                 return (
                   <div
@@ -562,18 +563,15 @@ export default function StudentDetailPage() {
           ) : (
             <div className="space-y-3">
               {historyHomeworks.map((homework) => {
-                const typeName =
-                  homework.type === 'mul'
-                    ? 'かけ算'
-                    : homework.type === 'div'
-                    ? 'わり算'
-                    : '見取算'
+                const typeName = getTypeName(homework.type)
                 const typeColors = {
-                  mul: 'from-blue-500 to-cyan-600',
-                  div: 'from-purple-500 to-pink-600',
-                  mitori: 'from-emerald-500 to-teal-600'
+                  mul: getTypeColor('mul'),
+                  div: getTypeColor('div'),
+                  mitori: getTypeColor('mitori')
                 }
-                const isCompleted = homework.answerCount >= homework.question_count
+                const answerCount = homework.answerCount || 0
+                const questionCount = homework.question_count || 0
+                const isCompleted = answerCount >= questionCount
                 return (
                   <div
                     key={homework.id}

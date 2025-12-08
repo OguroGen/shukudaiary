@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { getTypeName, getTypeColor } from '@/lib/utils/homework'
+import LoadingSpinner from '@/components/common/LoadingSpinner'
 
 export default function PresetsListPage() {
   const router = useRouter()
@@ -76,31 +78,6 @@ export default function PresetsListPage() {
     }
   }
 
-  const getTypeName = (type) => {
-    switch (type) {
-      case 'mul':
-        return 'かけ算'
-      case 'div':
-        return 'わり算'
-      case 'mitori':
-        return '見取算'
-      default:
-        return type
-    }
-  }
-
-  const getTypeColor = (type) => {
-    switch (type) {
-      case 'mul':
-        return 'from-blue-500 to-cyan-600'
-      case 'div':
-        return 'from-purple-500 to-pink-600'
-      case 'mitori':
-        return 'from-emerald-500 to-teal-600'
-      default:
-        return 'from-slate-500 to-slate-600'
-    }
-  }
 
   const getDetails = (preset) => {
     if (preset.type === 'mitori') {
@@ -118,28 +95,21 @@ export default function PresetsListPage() {
     )
   }
 
-  // 種目別にプリセットを分類
-  const presetsByType = {
+  // 種目別にプリセットを分類（useMemoで最適化）
+  const presetsByType = useMemo(() => ({
     mul: presets.filter(p => p.type === 'mul'),
     div: presets.filter(p => p.type === 'div'),
     mitori: presets.filter(p => p.type === 'mitori')
-  }
+  }), [presets])
 
   const typeOptions = [
-    { value: 'mul', name: 'かけ算', color: 'from-blue-500 to-cyan-600' },
-    { value: 'div', name: 'わり算', color: 'from-purple-500 to-pink-600' },
-    { value: 'mitori', name: '見取算', color: 'from-emerald-500 to-teal-600' }
+    { value: 'mul', name: getTypeName('mul'), color: getTypeColor('mul') },
+    { value: 'div', name: getTypeName('div'), color: getTypeColor('div') },
+    { value: 'mitori', name: getTypeName('mitori'), color: getTypeColor('mitori') }
   ]
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-600 dark:text-slate-400 font-medium">読み込み中...</p>
-        </div>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   return (
@@ -177,6 +147,8 @@ export default function PresetsListPage() {
                   <button
                     key={option.value}
                     onClick={() => toggleType(option.value)}
+                    aria-pressed={isSelected}
+                    aria-label={`${option.name}を${isSelected ? '非表示' : '表示'}`}
                     className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md ${
                       isSelected
                         ? `bg-gradient-to-r ${option.color} text-white`

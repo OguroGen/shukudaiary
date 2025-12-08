@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import LoadingSpinner from '@/components/common/LoadingSpinner'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -108,11 +109,7 @@ export default function SettingsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div>読み込み中...</div>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   return (
@@ -200,7 +197,7 @@ export default function SettingsPage() {
                       setSchoolSlug(cleaned)
                     }}
                     required
-                    pattern="[a-z0-9-]+"
+                    pattern="[a-z0-9\-]+"
                     minLength={3}
                     maxLength={50}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
