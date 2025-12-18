@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { getTodayString, isDateInPeriod } from '@/lib/utils/date'
 import { getTypeName, getTypeColor, getCompletionStatus, getStatusText } from '@/lib/utils/homework'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+import HomeworkCard from '@/components/teacher/HomeworkCard'
 
 export default function HomeworksListPage() {
   const router = useRouter()
@@ -116,19 +117,6 @@ export default function HomeworksListPage() {
     const answerCount = homework.answerCount || 0
     const questionCount = homework.question_count || 0
     return getCompletionStatus(answerCount, questionCount)
-  }
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'not_started':
-        return 'text-gray-600'
-      case 'in_progress':
-        return 'text-yellow-600'
-      case 'completed':
-        return 'text-green-600'
-      default:
-        return 'text-gray-600'
-    }
   }
 
   // Apply filters and sorting
@@ -346,58 +334,15 @@ export default function HomeworksListPage() {
           ) : (
             <div className="space-y-4">
               {homeworks.map((homework) => {
-                const typeName = getTypeName(homework.type)
-                const status = getHomeworkStatus(homework)
-                const statusText = getStatusText(status)
-                const statusColor = getStatusColor(status)
-                const answerCount = homework.answerCount || 0
-                const questionCount = homework.question_count || 0
-
-                const statusBgColor = 
-                  status === 'completed' 
-                    ? 'from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700'
-                    : status === 'in_progress'
-                    ? 'from-amber-500 to-orange-600 dark:from-amber-600 dark:to-orange-700'
-                    : 'from-slate-400 to-slate-500 dark:from-slate-500 dark:to-slate-600'
-
                 return (
-                  <div
+                  <HomeworkCard
                     key={homework.id}
-                    className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 hover:shadow-lg transition-all duration-200 hover:border-blue-300 dark:hover:border-blue-600"
-                  >
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-bold text-slate-800 dark:text-slate-200">
-                            宿題 #{homework.id.slice(0, 8)}
-                          </h3>
-                          <span className={`px-3 py-1 bg-gradient-to-r ${statusBgColor} text-white rounded-lg text-xs font-bold shadow-sm`}>
-                            {statusText}
-                          </span>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm text-slate-600 dark:text-slate-400">
-                            <span className="font-semibold">{homework.student?.nickname}</span> - {typeName}
-                          </p>
-                          <p className="text-sm text-slate-500 dark:text-slate-500">
-                            <span className="font-medium">期間:</span> {new Date(homework.start_date).toLocaleDateString('ja-JP')} ~{' '}
-                            {new Date(homework.end_date).toLocaleDateString('ja-JP')}
-                          </p>
-                          {status === 'in_progress' && (
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                              <span className="font-medium">進捗:</span> {answerCount} / {questionCount}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <Link
-                        href={`/teacher/homeworks/${homework.id}`}
-                        className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap"
-                      >
-                        詳細を見る
-                      </Link>
-                    </div>
-                  </div>
+                    homework={homework}
+                    showStudentName={true}
+                    showStatus={true}
+                    showProgress={true}
+                    detailLink={`/teacher/homeworks/${homework.id}`}
+                  />
                 )
               })}
             </div>

@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { getTodayString, isDateInPeriod } from '@/lib/utils/date'
 import { getTypeName, getTypeColor, getCompletionStatus } from '@/lib/utils/homework'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+import HomeworkCard from '@/components/teacher/HomeworkCard'
 
 export default function StudentDetailPage() {
   const router = useRouter()
@@ -503,42 +504,13 @@ export default function StudentDetailPage() {
           ) : (
             <div className="space-y-3">
               {todayHomeworks.map((homework) => {
-                const typeName = getTypeName(homework.type)
-                const typeColors = {
-                  mul: getTypeColor('mul'),
-                  div: getTypeColor('div'),
-                  mitori: getTypeColor('mitori')
-                }
                 return (
-                  <div
+                  <HomeworkCard
                     key={homework.id}
-                    className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 hover:shadow-lg transition-all duration-200"
-                  >
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className={`px-3 py-1 bg-gradient-to-r ${typeColors[homework.type]} text-white rounded-lg text-sm font-bold`}>
-                            {typeName}
-                          </span>
-                          <span className="text-slate-500 dark:text-slate-400 text-sm font-mono">
-                            #{homework.id.slice(0, 8)}
-                          </span>
-                        </div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          期間: {new Date(homework.start_date).toLocaleDateString('ja-JP')} ~ {new Date(homework.end_date).toLocaleDateString('ja-JP')}
-                        </p>
-                        <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
-                          作成日: {new Date(homework.created_at).toLocaleDateString('ja-JP')}
-                        </p>
-                      </div>
-                      <Link
-                        href={`/teacher/homeworks/${homework.id}?from=student&student_id=${student.id}`}
-                        className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap"
-                      >
-                        詳細を見る
-                      </Link>
-                    </div>
-                  </div>
+                    homework={homework}
+                    showCreatedDate={true}
+                    detailLink={`/teacher/homeworks/${homework.id}?from=student&student_id=${student.id}`}
+                  />
                 )
               })}
             </div>
@@ -563,50 +535,14 @@ export default function StudentDetailPage() {
           ) : (
             <div className="space-y-3">
               {historyHomeworks.map((homework) => {
-                const typeName = getTypeName(homework.type)
-                const typeColors = {
-                  mul: getTypeColor('mul'),
-                  div: getTypeColor('div'),
-                  mitori: getTypeColor('mitori')
-                }
-                const answerCount = homework.answerCount || 0
-                const questionCount = homework.question_count || 0
-                const isCompleted = answerCount >= questionCount
                 return (
-                  <div
+                  <HomeworkCard
                     key={homework.id}
-                    className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 hover:shadow-lg transition-all duration-200"
-                  >
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className={`px-3 py-1 bg-gradient-to-r ${typeColors[homework.type]} text-white rounded-lg text-sm font-bold`}>
-                            {typeName}
-                          </span>
-                          <span className="text-slate-500 dark:text-slate-400 text-sm font-mono">
-                            #{homework.id.slice(0, 8)}
-                          </span>
-                          {isCompleted && (
-                            <span className="px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 rounded text-xs font-semibold">
-                              完了
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          期間: {new Date(homework.start_date).toLocaleDateString('ja-JP')} ~ {new Date(homework.end_date).toLocaleDateString('ja-JP')}
-                        </p>
-                        <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
-                          作成日: {new Date(homework.created_at).toLocaleDateString('ja-JP')}
-                        </p>
-                      </div>
-                      <Link
-                        href={`/teacher/homeworks/${homework.id}?from=student&student_id=${student.id}`}
-                        className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap"
-                      >
-                        詳細を見る
-                      </Link>
-                    </div>
-                  </div>
+                    homework={homework}
+                    showCreatedDate={true}
+                    showCompletedBadge={true}
+                    detailLink={`/teacher/homeworks/${homework.id}?from=student&student_id=${student.id}`}
+                  />
                 )
               })}
             </div>
