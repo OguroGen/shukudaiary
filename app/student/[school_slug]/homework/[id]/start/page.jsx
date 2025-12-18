@@ -79,15 +79,15 @@ export default function HomeworkStartPage() {
           <div className="text-sm font-bold text-gray-800">
             <span className="text-orange-500">問題数:</span> {homework.question_count}問
           </div>
-          {homework.type !== 'mitori' && (
+          {homework.type !== 'mitori' && homework.parameter1 && homework.parameter2 && (
             <div className="text-sm font-bold text-gray-800">
               <span className="text-orange-500">桁数:</span>{' '}
-              {homework.left_digits}桁 × {homework.right_digits}桁
+              {homework.parameter1}桁 × {homework.parameter2}桁
             </div>
           )}
-          {homework.type === 'mitori' && (
+          {homework.type === 'mitori' && homework.parameter2 && (
             <div className="text-sm font-bold text-gray-800">
-              <span className="text-orange-500">行数:</span> {homework.rows}行
+              <span className="text-orange-500">行数:</span> {homework.parameter2}行
             </div>
           )}
           <div className="text-xs text-gray-700">

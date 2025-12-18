@@ -63,23 +63,33 @@ export async function POST(request) {
 
     // Generate questions
     let questions = []
-    if (homeworkData.type === 'mul' && homeworkData.left_digits && homeworkData.right_digits) {
+    const parameters = {
+      parameter1: homeworkData.parameter1,
+      parameter2: homeworkData.parameter2,
+      parameter3: homeworkData.parameter3,
+      parameter4: homeworkData.parameter4,
+      parameter5: homeworkData.parameter5,
+      parameter6: homeworkData.parameter6,
+      parameter7: homeworkData.parameter7,
+      parameter8: homeworkData.parameter8,
+      parameter9: homeworkData.parameter9,
+      parameter10: homeworkData.parameter10,
+    }
+    
+    if (homeworkData.type === 'mul') {
       questions = generateMultiplicationQuestions(
         homeworkData.question_count,
-        homeworkData.left_digits,
-        homeworkData.right_digits
+        parameters
       )
-    } else if (homeworkData.type === 'div' && homeworkData.left_digits && homeworkData.right_digits) {
+    } else if (homeworkData.type === 'div') {
       questions = generateDivisionQuestions(
         homeworkData.question_count,
-        homeworkData.left_digits,
-        homeworkData.right_digits
+        parameters
       )
-    } else if (homeworkData.type === 'mitori' && homeworkData.rows && homeworkData.left_digits) {
+    } else if (homeworkData.type === 'mitori') {
       questions = generateMitoriQuestions(
         homeworkData.question_count,
-        homeworkData.left_digits,
-        homeworkData.rows
+        parameters
       )
     }
 
@@ -89,9 +99,16 @@ export async function POST(request) {
       .insert({
         student_id: homeworkData.student_id,
         type: homeworkData.type,
-        left_digits: homeworkData.left_digits,
-        right_digits: homeworkData.right_digits,
-        rows: homeworkData.rows,
+        parameter1: homeworkData.parameter1,
+        parameter2: homeworkData.parameter2,
+        parameter3: homeworkData.parameter3,
+        parameter4: homeworkData.parameter4,
+        parameter5: homeworkData.parameter5,
+        parameter6: homeworkData.parameter6,
+        parameter7: homeworkData.parameter7,
+        parameter8: homeworkData.parameter8,
+        parameter9: homeworkData.parameter9,
+        parameter10: homeworkData.parameter10,
         question_count: homeworkData.question_count,
         start_date: homeworkData.start_date,
         end_date: homeworkData.end_date,

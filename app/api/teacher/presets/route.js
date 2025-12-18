@@ -15,7 +15,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name, type, left_digits, right_digits, rows, question_count } =
+    const { name, type, parameter1, parameter2, parameter3, parameter4, parameter5, parameter6, parameter7, parameter8, parameter9, parameter10, question_count } =
       await request.json()
 
     if (!name || !type || !question_count) {
@@ -77,9 +77,16 @@ export async function POST(request) {
         school_id: teacher.school_id,
         name,
         type,
-        left_digits,
-        right_digits,
-        rows,
+        parameter1,
+        parameter2,
+        parameter3,
+        parameter4,
+        parameter5,
+        parameter6,
+        parameter7,
+        parameter8,
+        parameter9,
+        parameter10,
         question_count,
       })
       .select()

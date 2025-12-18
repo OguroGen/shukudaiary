@@ -81,9 +81,9 @@ export default function PresetsListPage() {
 
   const getDetails = (preset) => {
     if (preset.type === 'mitori') {
-      return `行数: ${preset.rows}, 問題数: ${preset.question_count}`
+      return `行数: ${preset.parameter2 || preset.rows || ''}, 問題数: ${preset.question_count}`
     } else {
-      return `左: ${preset.left_digits}桁, 右: ${preset.right_digits}桁, 問題数: ${preset.question_count}`
+      return `パラメーター1: ${preset.parameter1 || preset.left_digits || ''}桁, パラメーター2: ${preset.parameter2 || preset.right_digits || ''}桁, 問題数: ${preset.question_count}`
     }
   }
 

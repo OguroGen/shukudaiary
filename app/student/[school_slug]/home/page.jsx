@@ -154,8 +154,8 @@ export default function StudentHomePage() {
                   </h3>
                   <p className="text-xs text-gray-700 mb-1 font-semibold">
                     {homework.question_count}問
-                    {homework.type !== 'mitori' &&
-                      ` / ${homework.left_digits}桁 × ${homework.right_digits}桁`}
+                    {homework.type !== 'mitori' && homework.parameter1 && homework.parameter2 &&
+                      ` / ${homework.parameter1}桁 × ${homework.parameter2}桁`}
                   </p>
                   <p className="text-xs text-gray-600 mb-2">
                     期間: {new Date(homework.start_date).toLocaleDateString('ja-JP')} ~{' '}

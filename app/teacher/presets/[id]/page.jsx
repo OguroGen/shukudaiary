@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { getPlanLimits, checkPresetLimit, getLimitErrorMessage } from '@/lib/plans'
+import { getProblemType, getDefaultParameters, getParameters } from '@/lib/problem-types'
 
 export default function PresetEditPage() {
   const router = useRouter()
@@ -14,9 +15,7 @@ export default function PresetEditPage() {
 
   const [name, setName] = useState('')
   const [type, setType] = useState('mul')
-  const [leftDigits, setLeftDigits] = useState(2)
-  const [rightDigits, setRightDigits] = useState(1)
-  const [rows, setRows] = useState(4)
+  const [parameters, setParameters] = useState(getDefaultParameters('mul'))
   const [questionCount, setQuestionCount] = useState(5)
   const [presetCount, setPresetCount] = useState(0)
   const [planType, setPlanType] = useState('free')
@@ -41,13 +40,9 @@ export default function PresetEditPage() {
     })
   }, [presetId, isNew, router])
 
-  // 種目が変わった時に初期値を調整
+  // 種目が変わった時にパラメーターをリセット
   useEffect(() => {
-    if (type === 'mitori' && leftDigits === 2) {
-      setLeftDigits(3)
-    } else if (type !== 'mitori' && leftDigits === 3) {
-      setLeftDigits(2)
-    }
+    setParameters(getDefaultParameters(type))
   }, [type])
 
   const loadPresetCount = async (supabase, teacherId) => {
@@ -95,9 +90,7 @@ export default function PresetEditPage() {
       if (preset) {
         setName(preset.name)
         setType(preset.type)
-        setLeftDigits(preset.left_digits || (preset.type === 'mitori' ? 3 : 2))
-        setRightDigits(preset.right_digits || 1)
-        setRows(preset.rows || 4)
+        setParameters(getParameters(preset) || getDefaultParameters(preset.type))
         setQuestionCount(preset.question_count)
       }
     } catch (error) {
@@ -143,9 +136,16 @@ export default function PresetEditPage() {
         body: JSON.stringify({
           name,
           type,
-          left_digits: type !== 'mitori' ? leftDigits : leftDigits,
-          right_digits: type !== 'mitori' ? rightDigits : null,
-          rows: type === 'mitori' ? rows : null,
+          parameter1: parameters.parameter1,
+          parameter2: parameters.parameter2,
+          parameter3: parameters.parameter3,
+          parameter4: parameters.parameter4,
+          parameter5: parameters.parameter5,
+          parameter6: parameters.parameter6,
+          parameter7: parameters.parameter7,
+          parameter8: parameters.parameter8,
+          parameter9: parameters.parameter9,
+          parameter10: parameters.parameter10,
           question_count: questionCount,
         }),
       })
@@ -259,86 +259,34 @@ export default function PresetEditPage() {
             </div>
           </div>
 
-          {type !== 'mitori' && (
-            <>
-              <div>
+          {(() => {
+            const problemType = getProblemType(type)
+            if (!problemType) return null
+            
+            return Object.entries(problemType.parameters).map(([key, config]) => (
+              <div key={key}>
                 <label
-                  htmlFor="left_digits"
+                  htmlFor={key}
                   className="block text-sm font-medium mb-1"
                 >
-                  左側の桁数
+                  {config.label}
                 </label>
                 <input
-                  id="left_digits"
+                  id={key}
                   type="number"
-                  min="1"
-                  max="10"
-                  value={leftDigits}
-                  onChange={(e) => setLeftDigits(parseInt(e.target.value, 10))}
-                  required
+                  min={config.min}
+                  max={config.max}
+                  value={parameters[key] ?? config.default}
+                  onChange={(e) => setParameters({
+                    ...parameters,
+                    [key]: parseInt(e.target.value, 10) || null
+                  })}
+                  required={config.required}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div>
-                <label
-                  htmlFor="right_digits"
-                  className="block text-sm font-medium mb-1"
-                >
-                  右側の桁数
-                </label>
-                <input
-                  id="right_digits"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={rightDigits}
-                  onChange={(e) =>
-                    setRightDigits(parseInt(e.target.value, 10))
-                  }
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </>
-          )}
-
-          {type === 'mitori' && (
-            <>
-              <div>
-                <label
-                  htmlFor="left_digits"
-                  className="block text-sm font-medium mb-1"
-                >
-                  桁数
-                </label>
-                <input
-                  id="left_digits"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={leftDigits}
-                  onChange={(e) => setLeftDigits(parseInt(e.target.value, 10))}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label htmlFor="rows" className="block text-sm font-medium mb-1">
-                  行数
-                </label>
-                <input
-                  id="rows"
-                  type="number"
-                  min="2"
-                  max="10"
-                  value={rows}
-                  onChange={(e) => setRows(parseInt(e.target.value, 10))}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </>
-          )}
+            ))
+          })()}
 
           <div>
             <label

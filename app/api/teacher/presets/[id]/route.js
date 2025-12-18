@@ -16,7 +16,7 @@ export async function PUT(request, { params }) {
 
     const resolvedParams = await Promise.resolve(params)
     const presetId = resolvedParams.id
-    const { name, type, left_digits, right_digits, rows, question_count } =
+    const { name, type, parameter1, parameter2, parameter3, parameter4, parameter5, parameter6, parameter7, parameter8, parameter9, parameter10, question_count } =
       await request.json()
 
     if (!name || !type || !question_count) {
@@ -64,9 +64,16 @@ export async function PUT(request, { params }) {
       .update({
         name,
         type,
-        left_digits,
-        right_digits,
-        rows,
+        parameter1,
+        parameter2,
+        parameter3,
+        parameter4,
+        parameter5,
+        parameter6,
+        parameter7,
+        parameter8,
+        parameter9,
+        parameter10,
         question_count,
       })
       .eq('id', presetId)
