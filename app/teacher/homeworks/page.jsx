@@ -341,6 +341,8 @@ export default function HomeworksListPage() {
                     showStudentName={true}
                     showStatus={true}
                     showProgress={true}
+                    showCreatedDate={true}
+                    showCompletedBadge={true}
                     detailLink={`/teacher/homeworks/${homework.id}`}
                   />
                 )

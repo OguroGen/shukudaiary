@@ -52,9 +52,6 @@ export default function HomeworkCard({
           <div className="flex items-center gap-3 mb-2 flex-wrap">
             {showStatus ? (
               <>
-                <h3 className="font-bold text-slate-800 dark:text-slate-200">
-                  宿題 #{homework.id.slice(0, 8)}
-                </h3>
                 <span className={`px-3 py-1 bg-gradient-to-r ${statusBgColor} text-white rounded-lg text-xs font-bold shadow-sm`}>
                   {statusText}
                 </span>
@@ -63,9 +60,6 @@ export default function HomeworkCard({
               <>
                 <span className={`px-3 py-1 bg-gradient-to-r ${typeColors[homework.type]} text-white rounded-lg text-sm font-bold`}>
                   {typeName}
-                </span>
-                <span className="text-slate-500 dark:text-slate-400 text-sm font-mono">
-                  #{homework.id.slice(0, 8)}
                 </span>
                 {showCompletedBadge && isCompleted && (
                   <span className="px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 rounded text-xs font-semibold">
@@ -86,46 +80,49 @@ export default function HomeworkCard({
               const problemType = getProblemType(homework.type)
               if (!problemType) return null
               
-              const parts = []
-              Object.entries(problemType.parameters).forEach(([key, config]) => {
-                const value = homework[key]
-                if (value !== null && value !== undefined) {
-                  // lib/problem-types.jsのパラメーター定義を参考に表示形式を決定
-                  if (homework.type === 'mitori') {
-                    // 見取算: "3桁, 4行"
-                    if (key === 'parameter1') {
-                      parts.push(`${value}桁`)
-                    } else if (key === 'parameter2') {
-                      parts.push(`${value}行`)
-                    }
-                  } else if (homework.type === 'mul') {
-                    // かけ算: "2桁 × 1桁"
-                    if (key === 'parameter1') {
-                      parts.push(`${value}桁`)
-                    } else if (key === 'parameter2') {
-                      parts.push(`× ${value}桁`)
-                    }
-                  } else if (homework.type === 'div') {
-                    // わり算: "除数1桁, 商2桁"
-                    if (key === 'parameter1') {
-                      parts.push(`除数${value}桁`)
-                    } else if (key === 'parameter2') {
-                      parts.push(`商${value}桁`)
-                    }
-                  }
+              // わり算の場合: "÷1桁=2桁" の形式
+              if (homework.type === 'div') {
+                const divisorDigits = homework.parameter1
+                const quotientDigits = homework.parameter2
+                if (divisorDigits && quotientDigits) {
+                  return (
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      <span className="font-medium">桁数:</span> ÷{divisorDigits}桁={quotientDigits}桁
+                    </p>
+                  )
                 }
-              })
+                return null
+              }
               
-              if (parts.length === 0) return null
+              // 見取算の場合: "3桁4口" の形式
+              if (homework.type === 'mitori') {
+                const digits = homework.parameter1
+                const rows = homework.parameter2
+                if (digits && rows) {
+                  return (
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      <span className="font-medium">桁数・行数:</span> {digits}桁{rows}口
+                    </p>
+                  )
+                }
+                return null
+              }
               
-              return (
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  <span className="font-medium">
-                    {homework.type === 'mitori' ? '桁数・行数:' : homework.type === 'div' ? '桁数:' : '桁数:'}
-                  </span>{' '}
-                  {parts.join(homework.type === 'mitori' || homework.type === 'div' ? ', ' : ' ')}
-                </p>
-              )
+              // かけ算の場合: "2桁 × 1桁" の形式
+              if (homework.type === 'mul') {
+                const leftDigits = homework.parameter1
+                const rightDigits = homework.parameter2
+                if (leftDigits && rightDigits) {
+                  return (
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      <span className="font-medium">桁数:</span> {leftDigits}桁 × {rightDigits}桁
+                    </p>
+                  )
+                }
+                return null
+              }
+              
+              return null
             })()}
             <p className="text-sm text-slate-600 dark:text-slate-400">
               {showStatus ? (
