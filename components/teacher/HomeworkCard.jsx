@@ -2,58 +2,6 @@
 
 import Link from 'next/link'
 import { getTypeName, getTypeColor, getStatusText, getCompletionStatus } from '@/lib/utils/homework'
-import { getProblemType } from '@/lib/problem-types'
-
-export default function HomeworkCard({
-  homework,
-  showStudentName = false,
-  showType = true,
-  showStatus = false,
-  showCreatedDate = false,
-  detailLink,
-  className = ''
-}) {
-  // 基本情報
-  const typeName = getTypeName(homework.type)
-  const typeColor = getTypeColor(homework.type)
-
-  // 状態の計算
-  const answerCount = homework.answerCount || 0
-  const questionCount = homework.question_count || 0
-  const status = getCompletionStatus(answerCount, questionCount)
-  const statusText = getStatusText(status)
-  const statusBgColor = getStatusBgColor(status)
-
-  // 問題情報のフォーマット
-  const problemInfo = formatProblemInfo(homework.type, homework.parameter1, homework.parameter2)
-
-  // 日付フォーマット
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
-  }
-
-  return (
-    <div
-      className={`bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700/50 rounded-lg p-4 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200 ${className}`}
-    >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5">
-            {showStudentName && homework.student?.nickname && (
-              <StudentName name={homework.student.nickname} />
-            )}
-            {showType && <TypeBadge typeName={typeName} color={typeColor} />}
-            {problemInfo && <ProblemInfo info={problemInfo} />}
-            <Period startDate={homework.start_date} endDate={homework.end_date} formatDate={formatDate} />
-            {showStatus && <StatusBadge text={statusText} color={statusBgColor} />}
-            {showCreatedDate && <CreatedDate date={homework.created_at} formatDate={formatDate} />}
-          </div>
-        </div>
-        {detailLink && <DetailButton href={detailLink} />}
-      </div>
-    </div>
-  )
-}
 
 // ステータスの背景色を取得
 function getStatusBgColor(status) {
@@ -141,3 +89,53 @@ function DetailButton({ href }) {
   )
 }
 
+export default function HomeworkCard({
+  homework,
+  showStudentName = false,
+  showType = true,
+  showStatus = false,
+  showCreatedDate = false,
+  detailLink,
+  className = ''
+}) {
+  // 基本情報
+  const typeName = getTypeName(homework.type)
+  const typeColor = getTypeColor(homework.type)
+
+  // 状態の計算
+  const answerCount = homework.answerCount || 0
+  const questionCount = homework.question_count || 0
+  const status = getCompletionStatus(answerCount, questionCount)
+  const statusText = getStatusText(status)
+  const statusBgColor = getStatusBgColor(status)
+
+  // 問題情報のフォーマット
+  const problemInfo = formatProblemInfo(homework.type, homework.parameter1, homework.parameter2)
+
+  // 日付フォーマット
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
+  }
+
+  return (
+    <div
+      className={`bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700/50 rounded-lg p-4 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200 ${className}`}
+    >
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5">
+            {showStudentName && homework.student?.nickname && (
+              <StudentName name={homework.student.nickname} />
+            )}
+            {showType && <TypeBadge typeName={typeName} color={typeColor} />}
+            {problemInfo && <ProblemInfo info={problemInfo} />}
+            <Period startDate={homework.start_date} endDate={homework.end_date} formatDate={formatDate} />
+            {showStatus && <StatusBadge text={statusText} color={statusBgColor} />}
+            {showCreatedDate && <CreatedDate date={homework.created_at} formatDate={formatDate} />}
+          </div>
+        </div>
+        {detailLink && <DetailButton href={detailLink} />}
+      </div>
+    </div>
+  )
+}
