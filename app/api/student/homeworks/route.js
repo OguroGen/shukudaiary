@@ -67,35 +67,10 @@ export async function GET(request) {
       return NextResponse.json({ homeworks: [] })
     }
 
-    // Get answer counts for each homework
-    const homeworkIds = homeworks.map((h) => h.id)
-    const { data: answerCounts, error: answerError } = await supabase
-      .from('answers')
-      .select('homework_id')
-      .in('homework_id', homeworkIds)
-      .eq('student_id', studentId)
-
-    if (answerError) {
-      return NextResponse.json(
-        { error: 'Failed to fetch answer counts' },
-        { status: 500 }
-      )
-    }
-
-    // Count answers per homework
-    const answerCountMap = new Map()
-    if (answerCounts) {
-      answerCounts.forEach((answer) => {
-        if (answer.homework_id) {
-          const count = answerCountMap.get(answer.homework_id) || 0
-          answerCountMap.set(answer.homework_id, count + 1)
-        }
-      })
-    }
-
+    // Use answer_count column directly (updated by database trigger)
     // Filter out completed homeworks (where answer count equals question_count)
     const incompleteHomeworks = homeworks.filter((homework) => {
-      const answerCount = answerCountMap.get(homework.id) || 0
+      const answerCount = homework.answer_count || 0
       return answerCount < homework.question_count
     })
 

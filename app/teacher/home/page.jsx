@@ -4,111 +4,78 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { useTeacherAuth } from '@/hooks/useTeacherAuth'
+import { useTeacherData } from '@/hooks/useTeacherData'
+import { useTeacherBranch } from '@/hooks/useTeacherBranch'
+import { getStudentLoginUrl, copyToClipboard } from '@/lib/utils/teacher'
+import LoadingState from '@/components/teacher/LoadingState'
 
 export default function TeacherHomePage() {
   const router = useRouter()
-  const [teacherName, setTeacherName] = useState('')
-  const [schoolName, setSchoolName] = useState('')
-  const [schoolSlug, setSchoolSlug] = useState('')
-  const [baseUrl, setBaseUrl] = useState('')
+  const { teacherId, loading: authLoading } = useTeacherAuth()
+  const { teacher, school, loading: teacherLoading } = useTeacherData(teacherId)
+  const { branchId, loading: branchLoading } = useTeacherBranch(teacherId)
   const [stats, setStats] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [loadingStats, setLoadingStats] = useState(true)
+
+  const loading = authLoading || teacherLoading || branchLoading || loadingStats
 
   useEffect(() => {
-    // ベースURLを取得（クライアントサイドのみ）
-    // 生徒用URLはstudentサブドメインを使用
-    if (typeof window !== 'undefined') {
-      const origin = window.location.origin
-      // teacherサブドメインの場合はstudentサブドメインに変換
-      const studentBaseUrl = origin.replace('teacher.shukudaiary.anzan.online', 'shukudaiary.anzan.online')
-      setBaseUrl(studentBaseUrl)
+    if (!branchId) {
+      setStats({ todayAnswers: 0, todaySubmissions: 0 })
+      setLoadingStats(false)
+      return
     }
-  }, [])
 
-  useEffect(() => {
-    const supabase = createClient()
+    const loadStats = async () => {
+      try {
+        const supabase = createClient()
+        const today = new Date().toISOString().split('T')[0]
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        router.push('/teacher/login')
-        return
-      }
+        // Get students in teacher's branch
+        const { data: students } = await supabase
+          .from('students')
+          .select('id')
+          .eq('branch_id', branchId)
 
-      // Get teacher and school info in one query
-      supabase
-        .from('teachers')
-        .select('id, school_id, email, schools(name, slug)')
-        .eq('id', session.user.id)
-        .single()
-        .then(({ data: teacher, error }) => {
-          if (error || !teacher) {
-            setLoading(false)
-            return
-          }
+        if (!students || students.length === 0) {
+          setStats({ todayAnswers: 0, todaySubmissions: 0 })
+          setLoadingStats(false)
+          return
+        }
 
-          setTeacherName(teacher.email)
-          if (teacher.schools && typeof teacher.schools === 'object') {
-            const school = teacher.schools
-            setSchoolName(school.name)
-            setSchoolSlug(school.slug)
-          }
+        const studentIds = students.map((s) => s.id)
 
-          const today = new Date().toISOString().split('T')[0]
+        // Get today's homeworks count
+        const { count: todaySubmissions } = await supabase
+          .from('homeworks')
+          .select('id', { count: 'exact', head: true })
+          .in('student_id', studentIds)
+          .gte('created_at', today)
 
-          // Get teacher's branch_id from teacher_branches (MVP: 1教場固定)
-          supabase
-            .from('teacher_branches')
-            .select('branch_id')
-            .eq('teacher_id', session.user.id)
-            .limit(1)
-            .single()
-            .then(({ data: teacherBranch }) => {
-              if (!teacherBranch) {
-                setStats({ todayAnswers: 0, todaySubmissions: 0 })
-                setLoading(false)
-                return
-              }
+        // Get today's answer count
+        const { data: homeworksData } = await supabase
+          .from('homeworks')
+          .select('answer_count')
+          .in('student_id', studentIds)
+          .gte('created_at', today)
 
-              // Get students in teacher's branch and stats in parallel
-              Promise.all([
-                supabase
-                  .from('students')
-                  .select('id')
-                  .eq('branch_id', teacherBranch.branch_id),
-              ]).then(([studentsRes]) => {
-            const students = studentsRes.data || []
-            if (students.length === 0) {
-              setStats({ todayAnswers: 0, todaySubmissions: 0 })
-              setLoading(false)
-              return
-            }
+        const todayAnswers = homeworksData?.reduce((sum, hw) => sum + (hw.answer_count || 0), 0) || 0
 
-            const studentIds = students.map((s) => s.id)
-
-            // Get stats in parallel
-            Promise.all([
-              supabase
-                .from('answers')
-                .select('id', { count: 'exact', head: true })
-                .in('student_id', studentIds)
-                .gte('created_at', today),
-              supabase
-                .from('homeworks')
-                .select('id', { count: 'exact', head: true })
-                .in('student_id', studentIds)
-                .gte('created_at', today),
-            ]).then(([answersRes, homeworksRes]) => {
-                setStats({
-                  todayAnswers: answersRes.count || 0,
-                  todaySubmissions: homeworksRes.count || 0,
-                })
-                setLoading(false)
-              })
-            })
-          })
+        setStats({
+          todayAnswers,
+          todaySubmissions: todaySubmissions || 0,
         })
-    })
-  }, [router])
+      } catch (error) {
+        console.error('Failed to load stats:', error)
+        setStats({ todayAnswers: 0, todaySubmissions: 0 })
+      } finally {
+        setLoadingStats(false)
+      }
+    }
+
+    loadStats()
+  }, [branchId])
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -116,15 +83,18 @@ export default function TeacherHomePage() {
     router.push('/teacher/login')
   }
 
+  const handleCopyUrl = async () => {
+    if (!school?.slug) return
+    
+    const url = getStudentLoginUrl(school.slug)
+    const success = await copyToClipboard(url)
+    if (success) {
+      alert('URLをクリップボードにコピーしました')
+    }
+  }
+
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-600 dark:text-slate-400 font-medium">読み込み中...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState />
   }
 
   return (
@@ -135,14 +105,14 @@ export default function TeacherHomePage() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-                ようこそ、{teacherName}さん
+                ようこそ、{teacher?.email || ''}さん
               </h1>
-              {schoolName && (
+              {school?.name && (
                 <p className="text-slate-600 dark:text-slate-400 mt-2 flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
-                  <span className="font-medium">{schoolName}</span>
+                  <span className="font-medium">{school.name}</span>
                 </p>
               )}
             </div>
@@ -156,7 +126,7 @@ export default function TeacherHomePage() {
         </div>
 
         {/* 生徒用URL表示 */}
-        {schoolSlug && (
+        {school?.slug && (
           <div className="bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 rounded-2xl shadow-xl p-6 mb-6 border border-blue-400/20 dark:border-blue-500/20">
             <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,28 +141,14 @@ export default function TeacherHomePage() {
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex-1 flex items-center gap-2 flex-wrap min-w-0">
                   <span className="text-blue-100 dark:text-blue-200 text-sm font-mono">
-                    {baseUrl}/student/
+                    {typeof window !== 'undefined' && getStudentLoginUrl(school.slug).replace(`/${school.slug}/login`, '/')}
                   </span>
                   <span className="text-white font-mono font-bold text-lg">
-                    {schoolSlug}/login
+                    {school.slug}/login
                   </span>
                 </div>
                 <button
-                  onClick={() => {
-                    const url = `${baseUrl}/student/${schoolSlug}/login`
-                    navigator.clipboard.writeText(url).then(() => {
-                      alert('URLをクリップボードにコピーしました')
-                    }).catch(() => {
-                      // フォールバック: テキストを選択
-                      const textArea = document.createElement('textarea')
-                      textArea.value = url
-                      document.body.appendChild(textArea)
-                      textArea.select()
-                      document.execCommand('copy')
-                      document.body.removeChild(textArea)
-                      alert('URLをクリップボードにコピーしました')
-                    })
-                  }}
+                  onClick={handleCopyUrl}
                   className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md flex-shrink-0"
                   title="URLをコピー"
                 >

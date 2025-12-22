@@ -60,33 +60,10 @@ export default function StudentDetailPage() {
       if (homeworksData) {
         setHomeworks(homeworksData)
         
-        // Get answer counts for each homework
-        const homeworkIds = homeworksData.map((h) => h.id)
-        let answerCountMap = new Map()
-        
-        // 空配列チェック
-        if (homeworkIds.length > 0) {
-          const { data: answerCounts, error: answerError } = await supabase
-            .from('answers')
-            .select('homework_id')
-            .in('homework_id', homeworkIds)
-
-          if (answerError) {
-            console.error('Failed to load answer counts:', answerError)
-          } else if (answerCounts) {
-            answerCounts.forEach((answer) => {
-              if (answer?.homework_id) {
-                const count = answerCountMap.get(answer.homework_id) || 0
-                answerCountMap.set(answer.homework_id, count + 1)
-              }
-            })
-          }
-        }
-
-        // Add answer count to each homework
+        // Use answer_count column directly (updated by database trigger)
         const homeworksWithAnswerCount = homeworksData.map((hw) => ({
           ...hw,
-          answerCount: answerCountMap.get(hw.id) || 0
+          answerCount: hw.answer_count || 0
         }))
 
         // Separate into today's homeworks and history
@@ -508,6 +485,8 @@ export default function StudentDetailPage() {
                   <HomeworkCard
                     key={homework.id}
                     homework={homework}
+                    showType={true}
+                    showStatus={false}
                     showCreatedDate={true}
                     detailLink={`/teacher/homeworks/${homework.id}?from=student&student_id=${student.id}`}
                   />
@@ -539,8 +518,9 @@ export default function StudentDetailPage() {
                   <HomeworkCard
                     key={homework.id}
                     homework={homework}
+                    showType={true}
+                    showStatus={true}
                     showCreatedDate={true}
-                    showCompletedBadge={true}
                     detailLink={`/teacher/homeworks/${homework.id}?from=student&student_id=${student.id}`}
                   />
                 )

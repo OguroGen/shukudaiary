@@ -2,162 +2,142 @@
 
 import Link from 'next/link'
 import { getTypeName, getTypeColor, getStatusText, getCompletionStatus } from '@/lib/utils/homework'
-import { formatParameters, getProblemType } from '@/lib/problem-types'
+import { getProblemType } from '@/lib/problem-types'
 
 export default function HomeworkCard({
   homework,
   showStudentName = false,
+  showType = true,
   showStatus = false,
-  showProgress = false,
   showCreatedDate = false,
-  showCompletedBadge = false,
   detailLink,
   className = ''
 }) {
+  // 基本情報
   const typeName = getTypeName(homework.type)
-  const typeColors = {
-    mul: getTypeColor('mul'),
-    div: getTypeColor('div'),
-    mitori: getTypeColor('mitori')
-  }
+  const typeColor = getTypeColor(homework.type)
 
-  // 状態の計算（showStatusがtrueの場合）
-  let status = null
-  let statusText = null
-  let statusBgColor = null
-  if (showStatus) {
-    const answerCount = homework.answerCount || 0
-    const questionCount = homework.question_count || 0
-    status = getCompletionStatus(answerCount, questionCount)
-    statusText = getStatusText(status)
-    statusBgColor = 
-      status === 'completed' 
-        ? 'from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700'
-        : status === 'in_progress'
-        ? 'from-amber-500 to-orange-600 dark:from-amber-600 dark:to-orange-700'
-        : 'from-slate-400 to-slate-500 dark:from-slate-500 dark:to-slate-600'
-  }
-
-  // 完了状態の計算（showCompletedBadgeがtrueの場合）
+  // 状態の計算
   const answerCount = homework.answerCount || 0
   const questionCount = homework.question_count || 0
-  const isCompleted = answerCount >= questionCount
+  const status = getCompletionStatus(answerCount, questionCount)
+  const statusText = getStatusText(status)
+  const statusBgColor = getStatusBgColor(status)
+
+  // 問題情報のフォーマット
+  const problemInfo = formatProblemInfo(homework.type, homework.parameter1, homework.parameter2)
+
+  // 日付フォーマット
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
+  }
 
   return (
     <div
-      className={`bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 hover:shadow-lg transition-all duration-200 ${showStatus ? 'hover:border-blue-300 dark:hover:border-blue-600' : ''} ${className}`}
+      className={`bg-white dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700/50 rounded-lg p-4 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200 ${className}`}
     >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2 flex-wrap">
-            {showStatus ? (
-              <>
-                <span className={`px-3 py-1 bg-gradient-to-r ${statusBgColor} text-white rounded-lg text-xs font-bold shadow-sm`}>
-                  {statusText}
-                </span>
-              </>
-            ) : (
-              <>
-                <span className={`px-3 py-1 bg-gradient-to-r ${typeColors[homework.type]} text-white rounded-lg text-sm font-bold`}>
-                  {typeName}
-                </span>
-                {showCompletedBadge && isCompleted && (
-                  <span className="px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 rounded text-xs font-semibold">
-                    完了
-                  </span>
-                )}
-              </>
-            )}
-          </div>
-          <div className="space-y-1">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5">
             {showStudentName && homework.student?.nickname && (
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                <span className="font-semibold">{homework.student.nickname}</span> - {typeName}
-              </p>
+              <StudentName name={homework.student.nickname} />
             )}
-            {/* 問題情報（桁数・行数） */}
-            {(() => {
-              const problemType = getProblemType(homework.type)
-              if (!problemType) return null
-              
-              // わり算の場合: "÷1桁=2桁" の形式
-              if (homework.type === 'div') {
-                const divisorDigits = homework.parameter1
-                const quotientDigits = homework.parameter2
-                if (divisorDigits && quotientDigits) {
-                  return (
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      <span className="font-medium">桁数:</span> ÷{divisorDigits}桁={quotientDigits}桁
-                    </p>
-                  )
-                }
-                return null
-              }
-              
-              // 見取算の場合: "3桁4口" の形式
-              if (homework.type === 'mitori') {
-                const digits = homework.parameter1
-                const rows = homework.parameter2
-                if (digits && rows) {
-                  return (
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      <span className="font-medium">桁数・行数:</span> {digits}桁{rows}口
-                    </p>
-                  )
-                }
-                return null
-              }
-              
-              // かけ算の場合: "2桁 × 1桁" の形式
-              if (homework.type === 'mul') {
-                const leftDigits = homework.parameter1
-                const rightDigits = homework.parameter2
-                if (leftDigits && rightDigits) {
-                  return (
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      <span className="font-medium">桁数:</span> {leftDigits}桁 × {rightDigits}桁
-                    </p>
-                  )
-                }
-                return null
-              }
-              
-              return null
-            })()}
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              {showStatus ? (
-                <>
-                  <span className="font-medium">期間:</span> {new Date(homework.start_date).toLocaleDateString('ja-JP')} ~{' '}
-                  {new Date(homework.end_date).toLocaleDateString('ja-JP')}
-                </>
-              ) : (
-                <>
-                  期間: {new Date(homework.start_date).toLocaleDateString('ja-JP')} ~ {new Date(homework.end_date).toLocaleDateString('ja-JP')}
-                </>
-              )}
-            </p>
-            {showProgress && status === 'in_progress' && (
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                <span className="font-medium">進捗:</span> {answerCount} / {questionCount}
-              </p>
-            )}
-            {showCreatedDate && (
-              <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
-                作成日: {new Date(homework.created_at).toLocaleDateString('ja-JP')}
-              </p>
-            )}
+            {showType && <TypeBadge typeName={typeName} color={typeColor} />}
+            {problemInfo && <ProblemInfo info={problemInfo} />}
+            <Period startDate={homework.start_date} endDate={homework.end_date} formatDate={formatDate} />
+            {showStatus && <StatusBadge text={statusText} color={statusBgColor} />}
+            {showCreatedDate && <CreatedDate date={homework.created_at} formatDate={formatDate} />}
           </div>
         </div>
-        {detailLink && (
-          <Link
-            href={detailLink}
-            className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap"
-          >
-            詳細を見る
-          </Link>
-        )}
+        {detailLink && <DetailButton href={detailLink} />}
       </div>
     </div>
+  )
+}
+
+// ステータスの背景色を取得
+function getStatusBgColor(status) {
+  const colorMap = {
+    completed: 'from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700',
+    in_progress: 'from-amber-500 to-orange-600 dark:from-amber-600 dark:to-orange-700',
+    not_started: 'from-slate-400 to-slate-500 dark:from-slate-500 dark:to-slate-600'
+  }
+  return colorMap[status] || colorMap.not_started
+}
+
+// 問題情報をフォーマット
+function formatProblemInfo(type, param1, param2) {
+  if (!param1 || !param2) return null
+
+  switch (type) {
+    case 'div':
+      return `（÷${param1}桁=${param2}桁）`
+    case 'mitori':
+      return `（${param1}桁${param2}口）`
+    case 'mul':
+      return `（${param1}桁 × ${param2}桁）`
+    default:
+      return null
+  }
+}
+
+// サブコンポーネント
+function StudentName({ name }) {
+  return (
+    <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+      {name}
+    </span>
+  )
+}
+
+function TypeBadge({ typeName, color }) {
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 bg-gradient-to-r ${color} text-white rounded text-xs font-medium`}>
+      {typeName}
+    </span>
+  )
+}
+
+function ProblemInfo({ info }) {
+  return (
+    <span className="text-sm text-slate-600 dark:text-slate-300">
+      {info}
+    </span>
+  )
+}
+
+function Period({ startDate, endDate, formatDate }) {
+  return (
+    <span className="text-sm text-slate-600 dark:text-slate-400">
+      {formatDate(startDate)} ~ {formatDate(endDate)}
+    </span>
+  )
+}
+
+function StatusBadge({ text, color }) {
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 bg-gradient-to-r ${color} text-white rounded text-xs font-medium`}>
+      {text}
+    </span>
+  )
+}
+
+function CreatedDate({ date, formatDate }) {
+  return (
+    <span className="text-xs text-slate-500 dark:text-slate-500">
+      {formatDate(date)}
+    </span>
+  )
+}
+
+function DetailButton({ href }) {
+  return (
+    <Link
+      href={href}
+      className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-md hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors duration-200 text-sm font-medium whitespace-nowrap"
+    >
+      詳細を見る
+    </Link>
   )
 }
 

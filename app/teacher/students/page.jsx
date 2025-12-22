@@ -1,103 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { useTeacherAuth } from '@/hooks/useTeacherAuth'
+import { useTeacherBranch } from '@/hooks/useTeacherBranch'
+import { useStudents } from '@/hooks/useStudents'
+import PageHeader from '@/components/teacher/PageHeader'
+import LoadingState from '@/components/teacher/LoadingState'
+import EmptyState from '@/components/teacher/EmptyState'
 
 export default function StudentsListPage() {
-  const router = useRouter()
-  const [students, setStudents] = useState([])
+  const { teacherId, loading: authLoading } = useTeacherAuth()
+  const { branchId, loading: branchLoading } = useTeacherBranch(teacherId)
+  const { students, loading: studentsLoading, refetch } = useStudents(branchId, { includeHomeworkStatus: true })
   const [searchTerm, setSearchTerm] = useState('')
-  const [loading, setLoading] = useState(true)
   const [resettingPassword, setResettingPassword] = useState(null)
 
-  useEffect(() => {
-    const supabase = createClient()
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        router.push('/teacher/login')
-        return
-      }
-
-      loadStudents(supabase, session.user.id)
-    })
-  }, [router])
-
-  const loadStudents = async (supabase, teacherId) => {
-    try {
-      // Get teacher's branch_id from teacher_branches (MVP: 1教場固定)
-      const { data: teacherBranch } = await supabase
-        .from('teacher_branches')
-        .select('branch_id')
-        .eq('teacher_id', teacherId)
-        .limit(1)
-        .single()
-
-      if (!teacherBranch) return
-
-      // Get students in teacher's branch
-      const { data, error } = await supabase
-        .from('students')
-        .select('*')
-        .eq('branch_id', teacherBranch.branch_id)
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        console.error('Failed to load students:', error)
-        return
-      }
-
-      const students = data || []
-      
-      // Get today's date in YYYY-MM-DD format
-      const today = new Date().toISOString().split('T')[0]
-      
-      // Check for active and finished homeworks for each student
-      const studentsWithHomeworkStatus = await Promise.all(
-        students.map(async (student) => {
-          // Check for active homeworks (期間が今日を含み終了していない = end_date > 今日)
-          const { data: activeHomeworks } = await supabase
-            .from('homeworks')
-            .select('id')
-            .eq('student_id', student.id)
-            .lte('start_date', today)
-            .gt('end_date', today)
-            .limit(1)
-          
-          const hasActiveHomework = (activeHomeworks && activeHomeworks.length > 0) || false
-          
-          // Check for finished homeworks (今日終了した宿題 = end_date = 今日)
-          // ただし、アクティブな宿題がない場合のみチェック
-          let hasFinishedHomework = false
-          if (!hasActiveHomework) {
-            const { data: finishedHomeworks } = await supabase
-              .from('homeworks')
-              .select('id')
-              .eq('student_id', student.id)
-              .lte('start_date', today)
-              .eq('end_date', today)
-              .limit(1)
-            
-            hasFinishedHomework = (finishedHomeworks && finishedHomeworks.length > 0) || false
-          }
-          
-          return {
-            ...student,
-            hasActiveHomework,
-            hasFinishedHomework
-          }
-        })
-      )
-
-      setStudents(studentsWithHomeworkStatus)
-    } catch (error) {
-      console.error('Failed to load students:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const loading = authLoading || branchLoading || studentsLoading
 
   const handleResetPassword = async (studentId) => {
     if (!confirm('パスワードをリセットしますか？')) return
@@ -131,44 +50,30 @@ export default function StudentsListPage() {
   )
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-600 dark:text-slate-400 font-medium">読み込み中...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState />
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="生徒一覧"
+          backHref="/teacher/home"
+        >
+          <Link
+            href="/teacher/students/new"
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-indigo-600 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          >
+            <span className="flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              生徒を追加
+            </span>
+          </Link>
+        </PageHeader>
+
         <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6 mb-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-              生徒一覧
-            </h1>
-            <div className="flex gap-3">
-              <Link
-                href="/teacher/home"
-                className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
-              >
-                ホームに戻る
-              </Link>
-              <Link
-                href="/teacher/students/new"
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-indigo-600 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-              >
-                <span className="flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  生徒を追加
-                </span>
-              </Link>
-            </div>
-          </div>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,12 +92,14 @@ export default function StudentsListPage() {
 
         <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6">
           {filteredStudents.length === 0 ? (
-            <div className="text-center py-12">
-              <svg className="w-16 h-16 text-slate-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-              <p className="text-slate-600 dark:text-slate-400 font-medium">生徒が見つかりません。</p>
-            </div>
+            <EmptyState
+              message="生徒が見つかりません。"
+              icon={
+                <svg className="w-16 h-16 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              }
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">

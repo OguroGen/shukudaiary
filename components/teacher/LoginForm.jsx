@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import SuccessMessage from './SuccessMessage'
+import ErrorMessage from './ErrorMessage'
 
 export default function TeacherLoginForm() {
   const router = useRouter()
@@ -112,22 +114,8 @@ export default function TeacherLoginForm() {
             />
           </div>
         </div>
-        {successMessage && (
-          <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-            <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-blue-700 dark:text-blue-300 text-sm font-medium">{successMessage}</p>
-          </div>
-        )}
-        {error && (
-          <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border border-red-200 dark:border-red-800 rounded-xl">
-            <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-red-700 dark:text-red-300 text-sm font-medium">{error}</p>
-          </div>
-        )}
+        <SuccessMessage message={successMessage} />
+        <ErrorMessage message={error} />
         <button
           type="submit"
           disabled={loading}
