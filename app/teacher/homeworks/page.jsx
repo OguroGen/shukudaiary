@@ -281,7 +281,6 @@ export default function HomeworksListPage() {
               </select>
             </div>
           </div>
-        </div>
 
         <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6">
           {homeworks.length === 0 ? (
