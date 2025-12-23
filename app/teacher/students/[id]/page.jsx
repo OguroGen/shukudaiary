@@ -60,10 +60,32 @@ export default function StudentDetailPage() {
       if (homeworksData) {
         setHomeworks(homeworksData)
         
+        // Get correct counts for all homeworks
+        const homeworkIds = homeworksData.map((hw) => hw.id)
+        const correctCountMap = new Map()
+        
+        if (homeworkIds.length > 0) {
+          const { data: correctAnswers } = await supabase
+            .from('answers')
+            .select('homework_id')
+            .in('homework_id', homeworkIds)
+            .eq('is_correct', true)
+          
+          if (correctAnswers) {
+            correctAnswers.forEach((answer) => {
+              if (answer?.homework_id) {
+                const count = correctCountMap.get(answer.homework_id) || 0
+                correctCountMap.set(answer.homework_id, count + 1)
+              }
+            })
+          }
+        }
+        
         // Use answer_count column directly (updated by database trigger)
         const homeworksWithAnswerCount = homeworksData.map((hw) => ({
           ...hw,
-          answerCount: hw.answer_count || 0
+          answerCount: hw.answer_count || 0,
+          correctCount: correctCountMap.get(hw.id) || 0
         }))
 
         // Separate into today's homeworks and history
@@ -199,8 +221,7 @@ export default function StudentDetailPage() {
 
         setWeaknessAnalysis({
           wrongByType: wrongAnswersByType,
-          topWeaknesses,
-          weakestType: Object.entries(typeAccuracies).sort((a, b) => parseFloat(a[1]) - parseFloat(b[1]))[0]?.[0] || null
+          topWeaknesses
         })
       } else {
         setStats({
@@ -436,14 +457,6 @@ export default function StudentDetailPage() {
               </svg>
               弱点分析
             </h2>
-            {weaknessAnalysis.weakestType && (
-              <div className="mb-6 p-4 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800 rounded-xl">
-                <p className="text-sm font-semibold text-red-700 dark:text-red-300 mb-1">最も苦手な種目</p>
-                <p className="text-lg font-bold text-red-800 dark:text-red-200">
-                  {getTypeName(weaknessAnalysis.weakestType)}
-                </p>
-              </div>
-            )}
             <div>
               <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-3">よく間違える問題</h3>
               <div className="space-y-2">
@@ -487,7 +500,7 @@ export default function StudentDetailPage() {
                     homework={homework}
                     showType={true}
                     showStatus={false}
-                    showCreatedDate={true}
+                    showCreatedDate={false}
                     detailLink={`/teacher/homeworks/${homework.id}?from=student&student_id=${student.id}`}
                   />
                 )
@@ -520,7 +533,7 @@ export default function StudentDetailPage() {
                     homework={homework}
                     showType={true}
                     showStatus={true}
-                    showCreatedDate={true}
+                    showCreatedDate={false}
                     detailLink={`/teacher/homeworks/${homework.id}?from=student&student_id=${student.id}`}
                   />
                 )

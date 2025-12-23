@@ -78,6 +78,18 @@ function CreatedDate({ date, formatDate }) {
   )
 }
 
+function ScoreInfo({ correctCount, questionCount }) {
+  if (questionCount === 0) return null
+  
+  const accuracy = questionCount > 0 ? ((correctCount / questionCount) * 100).toFixed(1) : 0
+  
+  return (
+    <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+      {correctCount}問正解／{questionCount}問中（正答率{accuracy}％）
+    </span>
+  )
+}
+
 function DetailButton({ href }) {
   return (
     <Link
@@ -105,6 +117,7 @@ export default function HomeworkCard({
   // 状態の計算
   const answerCount = homework.answerCount || 0
   const questionCount = homework.question_count || 0
+  const correctCount = homework.correctCount || 0
   const status = getCompletionStatus(answerCount, questionCount)
   const statusText = getStatusText(status)
   const statusBgColor = getStatusBgColor(status)
@@ -131,6 +144,7 @@ export default function HomeworkCard({
             {problemInfo && <ProblemInfo info={problemInfo} />}
             <Period startDate={homework.start_date} endDate={homework.end_date} formatDate={formatDate} />
             {showStatus && <StatusBadge text={statusText} color={statusBgColor} />}
+            {questionCount > 0 && <ScoreInfo correctCount={correctCount} questionCount={questionCount} />}
             {showCreatedDate && <CreatedDate date={homework.created_at} formatDate={formatDate} />}
           </div>
         </div>

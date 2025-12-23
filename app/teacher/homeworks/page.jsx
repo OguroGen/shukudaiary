@@ -53,12 +53,34 @@ export default function HomeworksListPage() {
           .order('created_at', { ascending: false })
 
         if (data) {
+          // Get correct counts for all homeworks
+          const homeworkIds = data.map((hw) => hw.id)
+          const correctCountMap = new Map()
+          
+          if (homeworkIds.length > 0) {
+            const { data: correctAnswers } = await supabase
+              .from('answers')
+              .select('homework_id')
+              .in('homework_id', homeworkIds)
+              .eq('is_correct', true)
+            
+            if (correctAnswers) {
+              correctAnswers.forEach((answer) => {
+                if (answer?.homework_id) {
+                  const count = correctCountMap.get(answer.homework_id) || 0
+                  correctCountMap.set(answer.homework_id, count + 1)
+                }
+              })
+            }
+          }
+
           // Use answer_count column directly (updated by database trigger)
           const formatted = data.map((hw) => {
             return {
               ...hw,
               student: hw.students,
               answerCount: hw.answer_count || 0,
+              correctCount: correctCountMap.get(hw.id) || 0,
             }
           })
           setAllHomeworks(formatted)
@@ -302,7 +324,7 @@ export default function HomeworksListPage() {
                     showType={true}
                     showStatus={true}
                     showStudentName={true}
-                    showCreatedDate={true}
+                    showCreatedDate={false}
                     detailLink={`/teacher/homeworks/${homework.id}`}
                   />
                 )
