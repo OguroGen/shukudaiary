@@ -69,7 +69,7 @@ export default function HomeworkStartPage() {
     <div className="min-h-screen bg-yellow-50 p-2">
       <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-4 border-2 border-blue-300">
         <h1 className="text-lg font-bold mb-4 text-center text-blue-600">
-          📝 宿題 #{homework.id.slice(0, 8)}
+          📝 宿題
         </h1>
 
         <div className="space-y-3 mb-4 bg-yellow-50 rounded-xl p-3 border-2 border-yellow-300">
@@ -96,6 +96,17 @@ export default function HomeworkStartPage() {
             {new Date(homework.end_date).toLocaleDateString('ja-JP')}
           </div>
         </div>
+
+        {homework.message && (
+          <div className="mb-4 bg-blue-50 rounded-xl p-5 border-4 border-blue-400 shadow-lg">
+            <div className="text-base font-bold text-blue-700 mb-3">
+              💬 先生からのメッセージ
+            </div>
+            <div className="text-lg font-semibold text-gray-900 whitespace-pre-wrap leading-relaxed">
+              {homework.message}
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-2">
           <button

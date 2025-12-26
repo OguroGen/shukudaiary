@@ -145,8 +145,7 @@ export default function StudentHomePage() {
                   className="border-2 border-yellow-300 rounded-xl p-3 bg-yellow-50 hover:bg-yellow-100 transition-colors"
                 >
                   <h3 className="font-bold text-sm mb-2 text-gray-800">
-                    📝 宿題 #{homework.id.slice(0, 8)} -{' '}
-                    {homework.type === 'mul'
+                    📝 {homework.type === 'mul'
                       ? '✖️ かけ算'
                       : homework.type === 'div'
                       ? '➗ わり算'

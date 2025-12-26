@@ -112,6 +112,7 @@ export async function POST(request) {
         question_count: homeworkData.question_count,
         start_date: homeworkData.start_date,
         end_date: homeworkData.end_date,
+        message: homeworkData.message || null,
         questions: questions,
       })
       .select()

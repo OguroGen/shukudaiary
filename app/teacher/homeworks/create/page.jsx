@@ -36,6 +36,7 @@ function HomeworkCreatePageContent() {
   const [questionCount, setQuestionCount] = useState(5)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [message, setMessage] = useState('')
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [previewQuestions, setPreviewQuestions] = useState([])
@@ -187,6 +188,7 @@ function HomeworkCreatePageContent() {
       question_count: questionCount,
       start_date: startDate,
       end_date: endDate,
+      message: message.trim() || null,
     }
 
     const validationErrors = validateHomeworkData(homeworkData)
@@ -459,6 +461,27 @@ function HomeworkCreatePageContent() {
             {errors.end_date && (
               <p className="text-red-600 text-sm mt-1">{errors.end_date}</p>
             )}
+          </div>
+
+          <div>
+            <label
+              htmlFor="message"
+              className="block text-sm font-medium mb-1"
+            >
+              メッセージ（任意）
+            </label>
+            <textarea
+              id="message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="指示や励ましの言葉などを入力してください"
+              rows={3}
+              maxLength={500}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {message.length}/500文字
+            </p>
           </div>
 
           <div className="flex gap-4">

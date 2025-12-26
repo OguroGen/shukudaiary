@@ -127,7 +127,7 @@ export default function HomeworkQuizPage() {
         <div className="bg-white rounded-xl shadow-lg p-3 mb-3 border-2 border-blue-300">
           <div className="flex justify-between items-center mb-2">
             <h1 className="text-sm font-bold text-blue-600">
-              📝 宿題 #{homework.id.slice(0, 8)}
+              📝 宿題
             </h1>
             <div className="text-xs font-bold text-orange-500 bg-orange-100 px-2 py-1 rounded-xl">
               問題 {currentIndex + 1} / {questions.length}
