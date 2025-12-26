@@ -14,34 +14,8 @@ export default function StudentsListPage() {
   const { branchId, loading: branchLoading } = useTeacherBranch(teacherId)
   const { students, loading: studentsLoading, refetch } = useStudents(branchId, { includeHomeworkStatus: true })
   const [searchTerm, setSearchTerm] = useState('')
-  const [resettingPassword, setResettingPassword] = useState(null)
 
   const loading = authLoading || branchLoading || studentsLoading
-
-  const handleResetPassword = async (studentId) => {
-    if (!confirm('パスワードをリセットしますか？')) return
-
-    setResettingPassword(studentId)
-    try {
-      const response = await fetch('/api/teacher/students/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ student_id: studentId }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        alert(`新しいパスワード: ${data.new_password}`)
-      } else {
-        alert(data.error || 'パスワードリセットに失敗しました')
-      }
-    } catch (error) {
-      alert('パスワードリセットに失敗しました')
-    } finally {
-      setResettingPassword(null)
-    }
-  }
 
   const filteredStudents = students.filter(
     (student) =>

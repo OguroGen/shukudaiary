@@ -23,6 +23,7 @@ export default function StudentDetailPage() {
   const [weaknessAnalysis, setWeaknessAnalysis] = useState(null)
   const [loading, setLoading] = useState(true)
   const [resettingPassword, setResettingPassword] = useState(false)
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState(null) // null = 全て表示
 
   useEffect(() => {
     const supabase = createClient()
@@ -357,6 +358,85 @@ export default function StudentDetailPage() {
           </div>
         </div>
 
+        {/* 宿題履歴 */}
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6 mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              宿題履歴
+            </h2>
+            {/* 種目フィルターボタン */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedTypeFilter(null)}
+                className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md ${
+                  selectedTypeFilter === null
+                    ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white'
+                    : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600'
+                }`}
+              >
+                全て
+              </button>
+              {[
+                { type: 'mul', name: getTypeName('mul'), color: getTypeColor('mul') },
+                { type: 'div', name: getTypeName('div'), color: getTypeColor('div') },
+                { type: 'mitori', name: getTypeName('mitori'), color: getTypeColor('mitori') }
+              ].map(({ type, name, color }) => (
+                <button
+                  key={type}
+                  onClick={() => setSelectedTypeFilter(type)}
+                  className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md ${
+                    selectedTypeFilter === type
+                      ? `bg-gradient-to-r ${color} text-white`
+                      : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600'
+                  }`}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+          </div>
+          {(() => {
+            const filteredHomeworks = selectedTypeFilter
+              ? historyHomeworks.filter((hw) => hw.type === selectedTypeFilter)
+              : historyHomeworks
+
+            if (filteredHomeworks.length === 0) {
+              return (
+                <div className="text-center py-12">
+                  <svg className="w-16 h-16 text-slate-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-slate-600 dark:text-slate-400 font-medium">
+                    {selectedTypeFilter
+                      ? `${getTypeName(selectedTypeFilter)}の宿題履歴はまだありません。`
+                      : '宿題履歴はまだありません。'}
+                  </p>
+                </div>
+              )
+            }
+
+            return (
+              <div className="space-y-3">
+                {filteredHomeworks.map((homework) => {
+                  return (
+                    <HomeworkCard
+                      key={homework.id}
+                      homework={homework}
+                      showType={true}
+                      showStatus={true}
+                      showCreatedDate={false}
+                      detailLink={`/teacher/homeworks/${homework.id}?from=student&student_id=${student.id}`}
+                    />
+                  )
+                })}
+              </div>
+            )
+          })()}
+        </div>
+
         {/* 統計サマリー */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -500,39 +580,6 @@ export default function StudentDetailPage() {
                     homework={homework}
                     showType={true}
                     showStatus={false}
-                    showCreatedDate={false}
-                    detailLink={`/teacher/homeworks/${homework.id}?from=student&student_id=${student.id}`}
-                  />
-                )
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* 宿題履歴 */}
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6 mb-6">
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            宿題履歴
-          </h2>
-          {historyHomeworks.length === 0 ? (
-            <div className="text-center py-12">
-              <svg className="w-16 h-16 text-slate-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-slate-600 dark:text-slate-400 font-medium">宿題履歴はまだありません。</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {historyHomeworks.map((homework) => {
-                return (
-                  <HomeworkCard
-                    key={homework.id}
-                    homework={homework}
-                    showType={true}
-                    showStatus={true}
                     showCreatedDate={false}
                     detailLink={`/teacher/homeworks/${homework.id}?from=student&student_id=${student.id}`}
                   />
