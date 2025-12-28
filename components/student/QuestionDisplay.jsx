@@ -1,12 +1,7 @@
 'use client'
 
 import { memo } from 'react'
-
-// 数値を3桁ごとにコンマで区切る関数
-const formatNumber = (num) => {
-  if (num == null) return ''
-  return Number(num).toLocaleString('ja-JP')
-}
+import { formatNumber } from '@/lib/utils/format'
 
 function QuestionDisplay({ type, question, currentAnswer }) {
   if (type === 'mul' || type === 'div') {

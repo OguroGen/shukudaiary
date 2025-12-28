@@ -67,11 +67,9 @@ export async function GET(request) {
       return NextResponse.json({ homeworks: [] })
     }
 
-    // Use answer_count column directly (updated by database trigger)
-    // Filter out completed homeworks (where answer count equals question_count)
+    // Filter out completed homeworks using status column
     const incompleteHomeworks = homeworks.filter((homework) => {
-      const answerCount = homework.answer_count || 0
-      return answerCount < homework.question_count
+      return homework.status !== 'completed'
     })
 
     return NextResponse.json({ homeworks: incompleteHomeworks })

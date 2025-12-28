@@ -1,11 +1,15 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
+import { getStudentUrl } from '@/lib/utils/student'
 import BarcodeScanner from './BarcodeScanner'
+import ErrorMessage from './ErrorMessage'
 
 export default function LoginForm() {
   const router = useRouter()
+  const params = useParams()
+  const schoolSlug = params?.school_slug
   const [loginId, setLoginId] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -67,13 +71,9 @@ export default function LoginForm() {
       localStorage.setItem('student_id', data.student_id)
       localStorage.setItem('student_nickname', data.nickname)
 
-      // スラッグがある場合は新しいURL形式にリダイレクト
-      // ない場合は旧URL形式を維持
-      if (data.school_slug) {
-        router.push(`/student/${data.school_slug}/home`)
-      } else {
-        router.push('/student/home')
-      }
+      // Redirect to home page
+      const redirectSlug = data.school_slug || schoolSlug
+      router.push(getStudentUrl(redirectSlug, 'home'))
     } catch (err) {
       setError('ログインに失敗しました')
     } finally {
@@ -133,11 +133,7 @@ export default function LoginForm() {
             className="w-full px-3 py-2 border-2 border-yellow-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-200 text-sm"
           />
         </div>
-        {error && (
-          <div className="text-red-700 text-xs bg-red-100 p-2 rounded-xl border-2 border-red-300 font-semibold">
-            {error}
-          </div>
-        )}
+        <ErrorMessage message={error} />
         <button
           type="submit"
           disabled={loading}

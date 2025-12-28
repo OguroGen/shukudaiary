@@ -3,25 +3,37 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useStudentAuth } from '@/hooks/useStudentAuth'
+import { getStudentUrl } from '@/lib/utils/student'
+import { formatNumber, formatQuestion } from '@/lib/utils/format'
+import LoadingState from '@/components/student/LoadingState'
 
 export default function HomeworkResultPage() {
   const router = useRouter()
   const params = useParams()
   const homeworkId = params.id
   const schoolSlug = params.school_slug
+  const { loading: authLoading, isAuthenticated, getToken, getStudentId, requireAuth } = useStudentAuth()
 
   const [homework, setHomework] = useState(null)
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('student_token')
-    if (!token) {
-      router.push(schoolSlug ? `/student/${schoolSlug}/login` : '/student/login')
+    if (!authLoading && !isAuthenticated) {
+      requireAuth()
       return
     }
 
-    const studentId = localStorage.getItem('student_id')
+    if (authLoading) return
+
+    const token = getToken()
+    const studentId = getStudentId()
+    if (!token || !studentId) {
+      requireAuth()
+      return
+    }
+
     Promise.all([
       fetch(`/api/student/homework/${homeworkId}`, {
         headers: {
@@ -36,7 +48,7 @@ export default function HomeworkResultPage() {
     ])
       .then(([homeworkData, answersData]) => {
         if (homeworkData.error) {
-          router.push(schoolSlug ? `/student/${schoolSlug}/home` : '/student/home')
+          router.push(getStudentUrl(schoolSlug, 'home'))
           return
         }
 
@@ -55,17 +67,13 @@ export default function HomeworkResultPage() {
         }
       })
       .catch(() => {
-        router.push(schoolSlug ? `/student/${schoolSlug}/home` : '/student/home')
+        router.push(getStudentUrl(schoolSlug, 'home'))
       })
       .finally(() => setLoading(false))
-  }, [homeworkId, router, schoolSlug])
+  }, [homeworkId, router, schoolSlug, authLoading, isAuthenticated, getToken, getStudentId, requireAuth])
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-yellow-50">
-        <div className="text-base font-bold text-orange-500">読み込み中...</div>
-      </div>
-    )
+  if (authLoading || loading) {
+    return <LoadingState />
   }
 
   if (!homework || !result) {
@@ -74,23 +82,6 @@ export default function HomeworkResultPage() {
         <div className="text-base font-bold text-red-500">結果が見つかりません</div>
       </div>
     )
-  }
-
-  // 数値を3桁ごとにコンマで区切る関数
-  const formatNumber = (num) => {
-    if (num == null) return ''
-    return Number(num).toLocaleString('ja-JP')
-  }
-
-  const formatQuestion = (answer) => {
-    const q = answer.question
-    if (q.type === 'mul') {
-      return `${formatNumber(q.left)} × ${formatNumber(q.right)}`
-    } else if (q.type === 'div') {
-      return `${formatNumber(q.dividend)} ÷ ${formatNumber(q.divisor)}`
-    } else {
-      return q.numbers?.map(num => formatNumber(num)).join(' + ') || ''
-    }
   }
 
   const percentage = Math.round((result.correct / result.total) * 100)
@@ -122,7 +113,7 @@ export default function HomeworkResultPage() {
                 >
                   <div className="text-xs font-semibold text-gray-800">
                     <span className="text-red-500">問題{answer.question_index + 1}:</span>{' '}
-                    {formatQuestion(answer)}
+                    {formatQuestion(answer.question)}
                   </div>
                   <div className="text-xs text-gray-600 mt-1">
                     <span className="text-green-600 font-bold">正答: {formatNumber(answer.correct_answer)}</span>
@@ -136,7 +127,7 @@ export default function HomeworkResultPage() {
         )}
 
         <Link
-          href={schoolSlug ? `/student/${schoolSlug}/home` : '/student/home'}
+          href={getStudentUrl(schoolSlug, 'home')}
           className="block w-full px-4 py-2 bg-orange-400 text-white rounded-xl hover:bg-orange-500 text-center font-bold text-sm shadow-md transform hover:scale-105 transition-transform"
         >
           🏠 ホームに戻る

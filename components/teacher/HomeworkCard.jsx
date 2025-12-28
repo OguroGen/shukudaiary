@@ -114,13 +114,13 @@ export default function HomeworkCard({
   const typeName = getTypeName(homework.type)
   const typeColor = getTypeColor(homework.type)
 
-  // 状態の計算
-  const answerCount = homework.answerCount || 0
-  const questionCount = homework.question_count || 0
-  const correctCount = homework.correctCount || 0
-  const status = getCompletionStatus(answerCount, questionCount)
+  // 状態の取得（statusカラムから直接取得）
+  const homeworkStatus = homework.status || 'not_started'
+  const status = getCompletionStatus(homeworkStatus)
   const statusText = getStatusText(status)
   const statusBgColor = getStatusBgColor(status)
+  const correctCount = homework.correctCount || 0
+  const questionCount = homework.question_count || 0
 
   // 問題情報のフォーマット
   const problemInfo = formatProblemInfo(homework.type, homework.parameter1, homework.parameter2)

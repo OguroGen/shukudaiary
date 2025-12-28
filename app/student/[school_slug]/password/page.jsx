@@ -1,13 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useStudentAuth } from '@/hooks/useStudentAuth'
+import { getStudentUrl } from '@/lib/utils/student'
+import ErrorMessage from '@/components/student/ErrorMessage'
 
 export default function StudentPasswordChangePage() {
-  const router = useRouter()
   const params = useParams()
   const schoolSlug = params?.school_slug
+  const { loading: authLoading, isAuthenticated, getToken, getStudentId, requireAuth } = useStudentAuth()
   const [oldPassword, setOldPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -16,11 +19,10 @@ export default function StudentPasswordChangePage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const token = localStorage.getItem('student_token')
-    if (!token) {
-      router.push(schoolSlug ? `/student/${schoolSlug}/login` : '/student/login')
+    if (!authLoading && !isAuthenticated) {
+      requireAuth()
     }
-  }, [router, schoolSlug])
+  }, [authLoading, isAuthenticated, requireAuth])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -50,8 +52,14 @@ export default function StudentPasswordChangePage() {
     setLoading(true)
 
     try {
-      const studentId = localStorage.getItem('student_id')
-      const token = localStorage.getItem('student_token')
+      const studentId = getStudentId()
+      const token = getToken()
+
+      if (!studentId || !token) {
+        setError('認証情報が見つかりません')
+        setLoading(false)
+        return
+      }
 
       const response = await fetch('/api/student/password', {
         method: 'POST',
@@ -138,11 +146,7 @@ export default function StudentPasswordChangePage() {
               className="w-full px-3 py-2 border-2 border-yellow-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-200 text-sm"
             />
           </div>
-          {error && (
-            <div className="text-red-700 text-xs bg-red-100 p-2 rounded-xl border-2 border-red-300 font-semibold">
-              {error}
-            </div>
-          )}
+          <ErrorMessage message={error} />
           <div className="flex gap-2">
             <button
               type="submit"
@@ -152,7 +156,7 @@ export default function StudentPasswordChangePage() {
               {loading ? '保存中...' : '💾 保存'}
             </button>
             <Link
-              href={schoolSlug ? `/student/${schoolSlug}/home` : '/student/home'}
+              href={getStudentUrl(schoolSlug, 'home')}
               className="flex-1 px-4 py-2 bg-gray-400 text-white rounded-xl hover:bg-gray-500 text-center font-bold text-sm shadow-md transform hover:scale-105 transition-transform"
             >
               🏠 ホームに戻る

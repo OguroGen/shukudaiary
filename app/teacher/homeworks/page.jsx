@@ -106,9 +106,8 @@ export default function HomeworksListPage() {
   }, [branchId, students])
 
   const getHomeworkStatus = (homework) => {
-    const answerCount = homework.answerCount || 0
-    const questionCount = homework.question_count || 0
-    return getCompletionStatus(answerCount, questionCount)
+    const status = homework.status || 'not_started'
+    return getCompletionStatus(status)
   }
 
   // Apply filters and sorting

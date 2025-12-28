@@ -97,11 +97,10 @@ export default function StudentDetailPage() {
         homeworksWithAnswerCount.forEach((hw) => {
           const startDate = hw.start_date || ''
           const endDate = hw.end_date || ''
-          const answerCount = hw.answerCount || 0
-          const questionCount = hw.question_count || 0
+          const status = hw.status || 'not_started'
           
           const isInPeriod = isDateInPeriod(today, startDate, endDate)
-          const isCompleted = answerCount >= questionCount
+          const isCompleted = status === 'completed'
           
           if (isInPeriod && !isCompleted) {
             // 今日の宿題：期限が今日を含んでまだ終了していないもの

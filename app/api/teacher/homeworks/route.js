@@ -114,6 +114,7 @@ export async function POST(request) {
         end_date: homeworkData.end_date,
         message: homeworkData.message || null,
         questions: questions,
+        status: 'not_started',
       })
       .select()
       .single()

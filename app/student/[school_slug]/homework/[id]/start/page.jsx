@@ -3,19 +3,31 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useStudentAuth } from '@/hooks/useStudentAuth'
+import { getStudentUrl, getHomeworkTypeDisplayName } from '@/lib/utils/student'
+import { formatDate } from '@/lib/utils/format'
+import LoadingState from '@/components/student/LoadingState'
 
 export default function HomeworkStartPage() {
   const router = useRouter()
   const params = useParams()
   const homeworkId = params.id
   const schoolSlug = params.school_slug
+  const { loading: authLoading, isAuthenticated, getToken, requireAuth } = useStudentAuth()
   const [homework, setHomework] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('student_token')
+    if (!authLoading && !isAuthenticated) {
+      requireAuth()
+      return
+    }
+
+    if (authLoading) return
+
+    const token = getToken()
     if (!token) {
-      router.push(schoolSlug ? `/student/${schoolSlug}/login` : '/student/login')
+      requireAuth()
       return
     }
 
@@ -27,27 +39,23 @@ export default function HomeworkStartPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
-          router.push(schoolSlug ? `/student/${schoolSlug}/home` : '/student/home')
+          router.push(getStudentUrl(schoolSlug, 'home'))
         } else {
           setHomework(data.homework)
         }
       })
       .catch(() => {
-        router.push(schoolSlug ? `/student/${schoolSlug}/home` : '/student/home')
+        router.push(getStudentUrl(schoolSlug, 'home'))
       })
       .finally(() => setLoading(false))
-  }, [homeworkId, router, schoolSlug])
+  }, [homeworkId, router, schoolSlug, authLoading, isAuthenticated, getToken, requireAuth])
 
   const handleStart = () => {
-    router.push(schoolSlug ? `/student/${schoolSlug}/homework/${homeworkId}/quiz` : `/student/homework/${homeworkId}/quiz`)
+    router.push(getStudentUrl(schoolSlug, `homework/${homeworkId}/quiz`))
   }
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-yellow-50">
-        <div className="text-base font-bold text-orange-500">読み込み中...</div>
-      </div>
-    )
+  if (authLoading || loading) {
+    return <LoadingState />
   }
 
   if (!homework) {
@@ -58,13 +66,6 @@ export default function HomeworkStartPage() {
     )
   }
 
-  const typeName =
-    homework.type === 'mul'
-      ? '✖️ かけ算'
-      : homework.type === 'div'
-      ? '➗ わり算'
-      : '➕ 見取算'
-
   return (
     <div className="min-h-screen bg-yellow-50 p-2">
       <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-4 border-2 border-blue-300">
@@ -74,7 +75,7 @@ export default function HomeworkStartPage() {
 
         <div className="space-y-3 mb-4 bg-yellow-50 rounded-xl p-3 border-2 border-yellow-300">
           <div className="text-sm font-bold text-gray-800">
-            <span className="text-orange-500">種目:</span> {typeName}
+            <span className="text-orange-500">種目:</span> {getHomeworkTypeDisplayName(homework.type)}
           </div>
           <div className="text-sm font-bold text-gray-800">
             <span className="text-orange-500">問題数:</span> {homework.question_count}問
@@ -92,8 +93,7 @@ export default function HomeworkStartPage() {
           )}
           <div className="text-xs text-gray-700">
             <span className="font-bold text-orange-500">解答可能期間:</span>{' '}
-            {new Date(homework.start_date).toLocaleDateString('ja-JP')} ~{' '}
-            {new Date(homework.end_date).toLocaleDateString('ja-JP')}
+            {formatDate(homework.start_date)} ~ {formatDate(homework.end_date)}
           </div>
         </div>
 
@@ -116,7 +116,7 @@ export default function HomeworkStartPage() {
             🚀 開始する
           </button>
           <Link
-            href={schoolSlug ? `/student/${schoolSlug}/home` : '/student/home'}
+            href={getStudentUrl(schoolSlug, 'home')}
             className="flex-1 px-4 py-2 bg-gray-400 text-white rounded-xl hover:bg-gray-500 text-center font-bold text-sm shadow-md transform hover:scale-105 transition-transform"
           >
             🏠 ホームに戻る

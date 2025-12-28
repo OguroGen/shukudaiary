@@ -2,14 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { useStudentAuth } from '@/hooks/useStudentAuth'
+import { getStudentUrl } from '@/lib/utils/student'
 import NumericKeypad from '@/components/student/NumericKeypad'
 import QuestionDisplay from '@/components/student/QuestionDisplay'
+import LoadingState from '@/components/student/LoadingState'
 
 export default function HomeworkQuizPage() {
   const router = useRouter()
   const params = useParams()
   const homeworkId = params.id
   const schoolSlug = params.school_slug
+  const { loading: authLoading, isAuthenticated, getToken, getStudentId, requireAuth } = useStudentAuth()
 
   const [homework, setHomework] = useState(null)
   const [questions, setQuestions] = useState([])
@@ -17,39 +21,73 @@ export default function HomeworkQuizPage() {
   const [currentAnswer, setCurrentAnswer] = useState('')
   const [answers, setAnswers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [questionStartTime, setQuestionStartTime] = useState(null)
+  const [homeworkStartTime, setHomeworkStartTime] = useState(null)
 
   useEffect(() => {
-    const token = localStorage.getItem('student_token')
-    if (!token) {
-      router.push(schoolSlug ? `/student/${schoolSlug}/login` : '/student/login')
+    if (!authLoading && !isAuthenticated) {
+      requireAuth()
       return
     }
 
-    fetch(`/api/student/homework/${homeworkId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    if (authLoading) return
+
+    const token = getToken()
+    if (!token) {
+      requireAuth()
+      return
+    }
+
+    const loadHomework = async () => {
+      try {
+        const res = await fetch(`/api/student/homework/${homeworkId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+        const data = await res.json()
+
         if (data.error) {
-          router.push(schoolSlug ? `/student/${schoolSlug}/home` : '/student/home')
-        } else {
-          setHomework(data.homework)
-          // Use questions from database
-          if (data.homework.questions && Array.isArray(data.homework.questions)) {
-            setQuestions(data.homework.questions)
-          } else {
-            // Fallback: if questions don't exist, redirect to home
-            router.push(schoolSlug ? `/student/${schoolSlug}/home` : '/student/home')
-          }
+          router.push(getStudentUrl(schoolSlug, 'home'))
+          return
         }
-      })
-      .catch(() => {
-        router.push(schoolSlug ? `/student/${schoolSlug}/home` : '/student/home')
-      })
-      .finally(() => setLoading(false))
-  }, [homeworkId, router, schoolSlug])
+
+        setHomework(data.homework)
+        // Use questions from database
+        if (data.homework.questions && Array.isArray(data.homework.questions)) {
+          setQuestions(data.homework.questions)
+          
+          // Record homework start time
+          const startRes = await fetch(`/api/student/homework/${homeworkId}/start`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          })
+          if (startRes.ok) {
+            setHomeworkStartTime(Date.now())
+            setQuestionStartTime(Date.now())
+          }
+        } else {
+          // Fallback: if questions don't exist, redirect to home
+          router.push(getStudentUrl(schoolSlug, 'home'))
+        }
+      } catch (error) {
+        router.push(getStudentUrl(schoolSlug, 'home'))
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadHomework()
+  }, [homeworkId, router, schoolSlug, authLoading, isAuthenticated, getToken, requireAuth])
+
+  // Record question start time when question changes
+  useEffect(() => {
+    if (questions.length > 0 && currentIndex < questions.length) {
+      setQuestionStartTime(Date.now())
+    }
+  }, [currentIndex, questions.length])
 
   const handleNumberClick = (num) => {
     setCurrentAnswer((prev) => prev + num.toString())
@@ -67,6 +105,10 @@ export default function HomeworkQuizPage() {
     const correctAnswer = question.answer
     const isCorrect = studentAnswer === correctAnswer
 
+    // Calculate time spent on this question
+    const timeSpent = questionStartTime ? 
+      Math.floor((Date.now() - questionStartTime) / 1000) : null
+
     const newAnswers = [
       ...answers,
       { question, studentAnswer, isCorrect },
@@ -74,8 +116,8 @@ export default function HomeworkQuizPage() {
     setAnswers(newAnswers)
 
     // Save answer to database
-    const studentId = localStorage.getItem('student_id')
-    const token = localStorage.getItem('student_token')
+    const studentId = getStudentId()
+    const token = getToken()
     if (studentId && token) {
       try {
         const response = await fetch('/api/student/answer', {
@@ -92,6 +134,7 @@ export default function HomeworkQuizPage() {
             student_answer: studentAnswer,
             is_correct: isCorrect,
             question_index: currentIndex,
+            time_spent_seconds: timeSpent,
           }),
         })
         if (!response.ok) {
@@ -106,17 +149,26 @@ export default function HomeworkQuizPage() {
       setCurrentIndex(currentIndex + 1)
       setCurrentAnswer('')
     } else {
-      // All questions answered, go to result
-      router.push(schoolSlug ? `/student/${schoolSlug}/homework/${homeworkId}/result` : `/student/homework/${homeworkId}/result`)
+      // All questions answered, record completion time
+      if (token) {
+        try {
+          await fetch(`/api/student/homework/${homeworkId}/complete`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          })
+        } catch (error) {
+          console.error('Error recording completion time:', error)
+        }
+      }
+      // Go to result page
+      router.push(getStudentUrl(schoolSlug, `homework/${homeworkId}/result`))
     }
   }
 
-  if (loading || !homework || questions.length === 0) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-yellow-50">
-        <div className="text-base font-bold text-orange-500">読み込み中...</div>
-      </div>
-    )
+  if (authLoading || loading || !homework || questions.length === 0) {
+    return <LoadingState />
   }
 
   const currentQuestion = questions[currentIndex]
