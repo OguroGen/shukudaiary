@@ -48,12 +48,13 @@ export async function GET(request) {
 
     const today = new Date().toISOString().split('T')[0]
 
-    // Get all homeworks for the student
+    // Get all homeworks for the student where today is within the period
     const { data: homeworks, error } = await supabase
       .from('homeworks')
       .select('*')
       .eq('student_id', studentId)
-      .gte('end_date', today)
+      .lte('due_date_start', today)  // 開始日が今日以前
+      .gte('due_date_end', today)     // 終了日が今日以降
       .order('created_at', { ascending: false })
 
     if (error) {

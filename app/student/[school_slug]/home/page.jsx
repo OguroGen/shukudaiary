@@ -68,7 +68,7 @@ export default function StudentHomePage() {
                       ` / ${homework.parameter1}桁 × ${homework.parameter2}桁`}
                   </p>
                   <p className="text-xs text-gray-600 mb-2">
-                    期間: {formatDate(homework.start_date)} ~ {formatDate(homework.end_date)}
+                    期間: {formatDate(homework.due_date_start)} ~ {formatDate(homework.due_date_end)}
                   </p>
                   <Link
                     href={getStudentUrl(schoolSlug, `homework/${homework.id}/start`)}

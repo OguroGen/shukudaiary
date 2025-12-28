@@ -57,7 +57,7 @@ function ProblemInfo({ info }) {
 function Period({ startDate, endDate, formatDate }) {
   return (
     <span className="text-sm text-slate-600 dark:text-slate-400">
-      {formatDate(startDate)} ~ {formatDate(endDate)}
+      期限: {formatDate(startDate)} ~ {formatDate(endDate)}
     </span>
   )
 }
@@ -142,7 +142,7 @@ export default function HomeworkCard({
             )}
             {showType && <TypeBadge typeName={typeName} color={typeColor} />}
             {problemInfo && <ProblemInfo info={problemInfo} />}
-            <Period startDate={homework.start_date} endDate={homework.end_date} formatDate={formatDate} />
+            <Period startDate={homework.due_date_start} endDate={homework.due_date_end} formatDate={formatDate} />
             {showStatus && <StatusBadge text={statusText} color={statusBgColor} />}
             {questionCount > 0 && <ScoreInfo correctCount={correctCount} questionCount={questionCount} />}
             {showCreatedDate && <CreatedDate date={homework.created_at} formatDate={formatDate} />}

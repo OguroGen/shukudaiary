@@ -93,7 +93,7 @@ export default function HomeworkStartPage() {
           )}
           <div className="text-xs text-gray-700">
             <span className="font-bold text-orange-500">解答可能期間:</span>{' '}
-            {formatDate(homework.start_date)} ~ {formatDate(homework.end_date)}
+            {formatDate(homework.due_date_start)} ~ {formatDate(homework.due_date_end)}
           </div>
         </div>
 

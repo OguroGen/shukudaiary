@@ -186,8 +186,8 @@ function HomeworkCreatePageContent() {
       parameter9: parameters.parameter9,
       parameter10: parameters.parameter10,
       question_count: questionCount,
-      start_date: startDate,
-      end_date: endDate,
+      due_date_start: startDate,
+      due_date_end: endDate,
       message: message.trim() || null,
     }
 
@@ -468,8 +468,8 @@ function HomeworkCreatePageContent() {
               required
               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
             />
-            {errors.start_date && (
-              <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.start_date}</p>
+            {errors.due_date_start && (
+              <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.due_date_start}</p>
             )}
           </div>
 
@@ -488,8 +488,8 @@ function HomeworkCreatePageContent() {
               required
               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
             />
-            {errors.end_date && (
-              <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.end_date}</p>
+            {errors.due_date_end && (
+              <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.due_date_end}</p>
             )}
           </div>
 

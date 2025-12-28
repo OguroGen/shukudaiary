@@ -87,8 +87,8 @@ export default function HomeworksListPage() {
           // Initial filter: show only homeworks where today is within the period
           const today = getTodayString()
           const filtered = formatted.filter((hw) => {
-            const startDate = hw.start_date || ''
-            const endDate = hw.end_date || ''
+            const startDate = hw.due_date_start || ''
+            const endDate = hw.due_date_end || ''
             return isDateInPeriod(today, startDate, endDate)
           })
           setHomeworks(filtered)
@@ -118,8 +118,8 @@ export default function HomeworksListPage() {
     if (!showAll) {
       const today = getTodayString()
       filtered = filtered.filter((hw) => {
-        const startDate = hw.start_date || ''
-        const endDate = hw.end_date || ''
+        const startDate = hw.due_date_start || ''
+        const endDate = hw.due_date_end || ''
         return isDateInPeriod(today, startDate, endDate)
       })
     }
@@ -147,13 +147,13 @@ export default function HomeworksListPage() {
       let aValue, bValue
 
       switch (sortBy) {
-        case 'start_date':
-          aValue = a.start_date
-          bValue = b.start_date
+        case 'due_date_start':
+          aValue = a.due_date_start
+          bValue = b.due_date_start
           break
-        case 'end_date':
-          aValue = a.end_date
-          bValue = b.end_date
+        case 'due_date_end':
+          aValue = a.due_date_end
+          bValue = b.due_date_end
           break
         case 'created_at':
           aValue = a.created_at
@@ -283,8 +283,8 @@ export default function HomeworksListPage() {
                 className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
               >
                 <option value="created_at">作成日</option>
-                <option value="start_date">開始日</option>
-                <option value="end_date">終了日</option>
+                <option value="due_date_start">期限開始日</option>
+                <option value="due_date_end">期限終了日</option>
                 <option value="student">生徒名</option>
                 <option value="type">種目</option>
               </select>

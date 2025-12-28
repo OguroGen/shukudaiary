@@ -95,8 +95,8 @@ export default function StudentDetailPage() {
         const historyHw = []
 
         homeworksWithAnswerCount.forEach((hw) => {
-          const startDate = hw.start_date || ''
-          const endDate = hw.end_date || ''
+          const startDate = hw.due_date_start || ''
+          const endDate = hw.due_date_end || ''
           const status = hw.status || 'not_started'
           
           const isInPeriod = isDateInPeriod(today, startDate, endDate)

@@ -19,8 +19,8 @@ function calculateHomeworkStatus(homeworks, today) {
   }
 
   const hasActiveHomework = homeworks.some((hw) => {
-    const startDate = hw.start_date || ''
-    const endDate = hw.end_date || ''
+    const startDate = hw.due_date_start || ''
+    const endDate = hw.due_date_end || ''
     const status = hw.status || 'not_started'
     const isInPeriod = isDateInPeriod(today, startDate, endDate)
     return isInPeriod && status !== 'completed'
@@ -28,8 +28,13 @@ function calculateHomeworkStatus(homeworks, today) {
 
   const hasFinishedHomework = homeworks.some((hw) => {
     if (!hw.completed_at) return false
-    const completedDate = new Date(hw.completed_at).toISOString().split('T')[0]
-    return completedDate === today
+    // ローカルタイムゾーンで日付を比較
+    const completedDate = new Date(hw.completed_at)
+    const completedYear = completedDate.getFullYear()
+    const completedMonth = String(completedDate.getMonth() + 1).padStart(2, '0')
+    const completedDay = String(completedDate.getDate()).padStart(2, '0')
+    const completedDateString = `${completedYear}-${completedMonth}-${completedDay}`
+    return completedDateString === today
   })
 
   return {
@@ -90,7 +95,7 @@ export function useStudents(branchId, options = {}) {
         // すべての宿題を一度に取得（N+1問題を解決）
         const { data: allHomeworks, error: homeworksError } = await supabase
           .from('homeworks')
-          .select('id, student_id, status, start_date, end_date, completed_at')
+          .select('id, student_id, status, due_date_start, due_date_end, completed_at')
           .in('student_id', studentIds)
 
         if (homeworksError) {
