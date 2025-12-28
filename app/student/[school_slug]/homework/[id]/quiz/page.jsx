@@ -23,6 +23,7 @@ export default function HomeworkQuizPage() {
   const [loading, setLoading] = useState(true)
   const [questionStartTime, setQuestionStartTime] = useState(null)
   const [homeworkStartTime, setHomeworkStartTime] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -86,6 +87,7 @@ export default function HomeworkQuizPage() {
   useEffect(() => {
     if (questions.length > 0 && currentIndex < questions.length) {
       setQuestionStartTime(Date.now())
+      setIsSubmitting(false) // 次の問題に進んだらsubmitを再有効化
     }
   }, [currentIndex, questions.length])
 
@@ -98,7 +100,10 @@ export default function HomeworkQuizPage() {
   }
 
   const handleSubmit = async () => {
-    if (!currentAnswer || questions.length === 0) return
+    if (!currentAnswer || questions.length === 0 || isSubmitting) return
+
+    // すぐにsubmitボタンを無効化して連打を防止
+    setIsSubmitting(true)
 
     const question = questions[currentIndex]
     const studentAnswer = parseInt(currentAnswer, 10)
@@ -115,54 +120,49 @@ export default function HomeworkQuizPage() {
     ]
     setAnswers(newAnswers)
 
-    // Save answer to database
+    // 保存処理をバックグラウンドで実行（awaitしない）
     const studentId = getStudentId()
     const token = getToken()
     if (studentId && token) {
-      try {
-        const response = await fetch('/api/student/answer', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            homework_id: homeworkId,
-            student_id: studentId,
-            question: question,
-            correct_answer: correctAnswer,
-            student_answer: studentAnswer,
-            is_correct: isCorrect,
-            question_index: currentIndex,
-            time_spent_seconds: timeSpent,
-          }),
-        })
-        if (!response.ok) {
-          console.error('Failed to save answer')
-        }
-      } catch (error) {
+      fetch('/api/student/answer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          homework_id: homeworkId,
+          student_id: studentId,
+          question: question,
+          correct_answer: correctAnswer,
+          student_answer: studentAnswer,
+          is_correct: isCorrect,
+          question_index: currentIndex,
+          time_spent_seconds: timeSpent,
+        }),
+      }).catch(error => {
         console.error('Error saving answer:', error)
-      }
+      })
     }
 
+    // すぐに次の問題に移動
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1)
       setCurrentAnswer('')
+      // isSubmittingはuseEffectでcurrentIndex変更時にリセットされる
     } else {
-      // All questions answered, record completion time
+      // 全問題完了時、完了処理もバックグラウンドで実行してすぐに結果ページへ
       if (token) {
-        try {
-          await fetch(`/api/student/homework/${homeworkId}/complete`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          })
-        } catch (error) {
+        fetch(`/api/student/homework/${homeworkId}/complete`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }).catch(error => {
           console.error('Error recording completion time:', error)
-        }
+        })
       }
-      // Go to result page
+      // すぐに結果ページへ遷移
       router.push(getStudentUrl(schoolSlug, `homework/${homeworkId}/result`))
     }
   }
@@ -198,7 +198,7 @@ export default function HomeworkQuizPage() {
             onNumberClick={handleNumberClick}
             onClear={handleClear}
             onSubmit={handleSubmit}
-            submitDisabled={!currentAnswer}
+            submitDisabled={!currentAnswer || isSubmitting}
           />
         </div>
       </div>
