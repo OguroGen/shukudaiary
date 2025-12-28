@@ -177,16 +177,32 @@ function HomeworkDetailPageContent() {
 
     setDeleting(true)
     try {
+      console.log('Deleting homework:', homeworkId)
       const response = await fetch(`/api/teacher/homeworks/${homeworkId}`, {
         method: 'DELETE',
       })
 
-      const data = await response.json()
+      console.log('Delete response status:', response.status, response.statusText)
 
       if (!response.ok) {
-        alert(data.error || '宿題の削除に失敗しました')
+        let errorMessage = '宿題の削除に失敗しました'
+        try {
+          const data = await response.json()
+          errorMessage = data.error || errorMessage
+          if (data.details) {
+            console.error('Delete error details:', data.details)
+          }
+        } catch (e) {
+          // JSONパースに失敗した場合、ステータステキストを使用
+          errorMessage = `${errorMessage} (${response.status}: ${response.statusText})`
+        }
+        console.error('Delete failed:', errorMessage, response.status)
+        alert(errorMessage)
         return
       }
+
+      const data = await response.json()
+      console.log('Delete success:', data)
 
       // 削除成功後、元のページに戻る
       if (from === 'student' && studentId) {
@@ -195,7 +211,8 @@ function HomeworkDetailPageContent() {
         router.push('/teacher/homeworks')
       }
     } catch (error) {
-      alert('宿題の削除に失敗しました')
+      console.error('Delete error:', error)
+      alert(`宿題の削除に失敗しました: ${error.message || '不明なエラー'}`)
     } finally {
       setDeleting(false)
     }
@@ -210,7 +227,7 @@ function HomeworkDetailPageContent() {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h1 className="text-2xl font-semibold">
-                宿題 #{homework.id.slice(0, 8)} - {studentName}
+                宿題 - {studentName}
               </h1>
             </div>
             <div className="flex flex-col items-end gap-2">
