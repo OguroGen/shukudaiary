@@ -37,14 +37,20 @@ function QuestionDisplay({ type, question, currentAnswer }) {
   // Mitori
   return (
     <div className="text-center py-4 bg-yellow-50 rounded-xl p-3 border-2 border-yellow-200 mb-3">
-      <div className="text-xl font-bold mb-3 text-gray-800 space-y-2">
-        {question.numbers?.map((num, idx) => (
-          <div key={idx} className="text-right pr-6">
-            {idx === 0 ? '' : <span className="text-gray-600 mx-1">+</span>}
-            <span className="text-orange-500">{formatNumber(num)}</span>
-          </div>
-        ))}
-        <div className="border-t-2 border-gray-400 pt-2 mt-2">
+      <div className="text-xl font-bold mb-3 text-gray-800 space-y-0">
+        {question.numbers?.map((num, idx) => {
+          const isNegative = num < 0
+          const absoluteValue = Math.abs(num)
+          return (
+            <div key={idx} className="text-right pr-6 leading-tight">
+              {isNegative && (
+                <span className="text-gray-600 mx-1">-</span>
+              )}
+              <span className="text-orange-500">{formatNumber(absoluteValue)}</span>
+            </div>
+          )
+        })}
+        <div className="border-t-2 border-gray-400 pt-1 mt-1">
           <span className="text-green-600 bg-white px-2 py-1 rounded-xl border-2 border-green-300 inline-block min-w-[120px]">
             {currentAnswer ? formatNumber(currentAnswer) : '?'}
           </span>
