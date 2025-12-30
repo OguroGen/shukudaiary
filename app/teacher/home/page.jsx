@@ -240,7 +240,7 @@ export default function TeacherHomePage() {
               </div>
             </Link>
             <Link
-              href="/teacher/fixed-questions"
+              href="/teacher/fixedquestions"
               className="group relative bg-gradient-to-br from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700 rounded-xl p-6 text-white hover:shadow-2xl transition-all duration-200 transform hover:-translate-y-1 overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>

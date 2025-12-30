@@ -4,7 +4,6 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { getTypeName } from '@/lib/utils/homework'
 import { validateHomeworkData } from '@/lib/validation/homework'
 import {
   generateMultiplicationQuestions,
@@ -15,7 +14,7 @@ import {
 import {
   generateMitoriQuestions,
 } from '@/lib/problems/mitori'
-import { getProblemType, getDefaultParameters, getParameters } from '@/lib/problem-types'
+import { getTypeName, getProblemType, getDefaultParameters, getParameters } from '@/lib/problem-types'
 
 function HomeworkCreatePageContent() {
   const router = useRouter()
@@ -36,8 +35,8 @@ function HomeworkCreatePageContent() {
     }
   }, [type, selectedPreset])
   const [questionCount, setQuestionCount] = useState(5)
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const [dueDateStart, setDueDateStart] = useState('')
+  const [dueDateEnd, setDueDateEnd] = useState('')
   const [message, setMessage] = useState('')
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
@@ -47,8 +46,8 @@ function HomeworkCreatePageContent() {
   // Initialize dates to today
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0]
-    setStartDate(today)
-    setEndDate(today)
+    setDueDateStart(today)
+    setDueDateEnd(today)
   }, [])
 
   useEffect(() => {
@@ -239,8 +238,8 @@ function HomeworkCreatePageContent() {
       parameter9: parameters.parameter9,
       parameter10: parameters.parameter10,
       question_count: questionCount,
-      due_date_start: startDate,
-      due_date_end: endDate,
+      due_date_start: dueDateStart,
+      due_date_end: dueDateEnd,
       message: message.trim() || null,
     }
 
@@ -550,13 +549,13 @@ function HomeworkCreatePageContent() {
               htmlFor="start_date"
               className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
             >
-              開始日
+              期限開始日
             </label>
             <input
               id="start_date"
               type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              value={dueDateStart}
+              onChange={(e) => setDueDateStart(e.target.value)}
               required
               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
             />
@@ -570,13 +569,13 @@ function HomeworkCreatePageContent() {
               htmlFor="end_date"
               className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
             >
-              終了日
+              期限終了日
             </label>
             <input
               id="end_date"
               type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              value={dueDateEnd}
+              onChange={(e) => setDueDateEnd(e.target.value)}
               required
               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
             />

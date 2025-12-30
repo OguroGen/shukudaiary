@@ -48,7 +48,7 @@ export default function FixedQuestionEditPage() {
 
   const loadFixedQuestion = async (supabase, id) => {
     try {
-      const response = await fetch(`/api/teacher/fixed-questions/${id}`)
+      const response = await fetch(`/api/teacher/fixedquestions/${id}`)
       const data = await response.json()
 
       if (data.fixed_question) {
@@ -124,8 +124,8 @@ export default function FixedQuestionEditPage() {
 
     try {
       const url = isNew
-        ? '/api/teacher/fixed-questions'
-        : `/api/teacher/fixed-questions/${fixedQuestionId}`
+        ? '/api/teacher/fixedquestions'
+        : `/api/teacher/fixedquestions/${fixedQuestionId}`
       const method = isNew ? 'POST' : 'PUT'
 
       const response = await fetch(url, {
@@ -145,7 +145,7 @@ export default function FixedQuestionEditPage() {
         return
       }
 
-      router.push('/teacher/fixed-questions')
+      router.push('/teacher/fixedquestions')
     } catch (error) {
       setErrors({ general: '保存に失敗しました' })
     } finally {
@@ -190,7 +190,7 @@ export default function FixedQuestionEditPage() {
               {isNew ? '固定問題を新規作成' : '固定問題を編集'}
             </h1>
             <Link
-              href="/teacher/fixed-questions"
+              href="/teacher/fixedquestions"
               className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
             >
               一覧に戻る
@@ -382,7 +382,7 @@ export default function FixedQuestionEditPage() {
                 {loading ? '保存中...' : '保存'}
               </button>
               <Link
-                href="/teacher/fixed-questions"
+                href="/teacher/fixedquestions"
                 className="flex-1 px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200 font-medium shadow-sm hover:shadow-md text-center"
               >
                 キャンセル

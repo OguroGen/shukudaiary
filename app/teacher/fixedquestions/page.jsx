@@ -4,7 +4,8 @@ import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { getTypeName, getTypeColor } from '@/lib/utils/homework'
+import { getTypeName } from '@/lib/problem-types'
+import { getTypeColor } from '@/lib/utils/homework'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 
 export default function FixedQuestionsListPage() {
@@ -58,7 +59,7 @@ export default function FixedQuestionsListPage() {
     if (!confirm('この固定問題を削除しますか？')) return
 
     try {
-      const response = await fetch(`/api/teacher/fixed-questions/${fixedQuestionId}`, {
+      const response = await fetch(`/api/teacher/fixedquestions/${fixedQuestionId}`, {
         method: 'DELETE',
       })
 
@@ -120,7 +121,7 @@ export default function FixedQuestionsListPage() {
                 ホームに戻る
               </Link>
               <Link
-                href="/teacher/fixed-questions/new"
+                href="/teacher/fixedquestions/new"
                 className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl hover:from-cyan-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
               >
                 固定問題を追加
@@ -202,7 +203,7 @@ export default function FixedQuestionsListPage() {
                           </div>
                           <div className="flex gap-2">
                             <Link
-                              href={`/teacher/fixed-questions/${fixedQuestion.id}`}
+                              href={`/teacher/fixedquestions/${fixedQuestion.id}`}
                               className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap"
                             >
                               編集

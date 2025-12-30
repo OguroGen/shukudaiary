@@ -4,7 +4,8 @@ import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { getTypeName, getTypeColor } from '@/lib/utils/homework'
+import { getTypeName } from '@/lib/problem-types'
+import { getTypeColor } from '@/lib/utils/homework'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 
 export default function PresetsListPage() {

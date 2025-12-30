@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { getTypeName, getTypeColor, getStatusText, getCompletionStatus } from '@/lib/utils/homework'
+import { getTypeName } from '@/lib/problem-types'
+import { getTypeColor, getStatusText, getCompletionStatus } from '@/lib/utils/homework'
 
 // ステータスの背景色を取得
 function getStatusBgColor(status) {

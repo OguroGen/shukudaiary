@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { getTypeName } from '@/lib/utils/homework'
+import { getTypeName } from '@/lib/problem-types'
 
 function HomeworkDetailPageContent() {
   const router = useRouter()
