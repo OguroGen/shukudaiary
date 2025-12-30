@@ -63,34 +63,51 @@ export async function POST(request) {
 
     // Generate questions
     let questions = []
-    const parameters = {
-      parameter1: homeworkData.parameter1,
-      parameter2: homeworkData.parameter2,
-      parameter3: homeworkData.parameter3,
-      parameter4: homeworkData.parameter4,
-      parameter5: homeworkData.parameter5,
-      parameter6: homeworkData.parameter6,
-      parameter7: homeworkData.parameter7,
-      parameter8: homeworkData.parameter8,
-      parameter9: homeworkData.parameter9,
-      parameter10: homeworkData.parameter10,
-    }
     
-    if (homeworkData.type === 'mul') {
-      questions = generateMultiplicationQuestions(
-        homeworkData.question_count,
-        parameters
-      )
-    } else if (homeworkData.type === 'div') {
-      questions = generateDivisionQuestions(
-        homeworkData.question_count,
-        parameters
-      )
-    } else if (homeworkData.type === 'mitori') {
-      questions = generateMitoriQuestions(
-        homeworkData.question_count,
-        parameters
-      )
+    // 固定問題が指定されている場合は、その問題を使用
+    if (homeworkData.fixed_question_id) {
+      const { data: fixedQuestion } = await supabase
+        .from('fixed_questions')
+        .select('questions, type')
+        .eq('id', homeworkData.fixed_question_id)
+        .single()
+      
+      if (fixedQuestion) {
+        questions = fixedQuestion.questions
+        // 固定問題の種目を使用
+        homeworkData.type = fixedQuestion.type
+      }
+    } else {
+      // 従来通りパラメーターから生成
+      const parameters = {
+        parameter1: homeworkData.parameter1,
+        parameter2: homeworkData.parameter2,
+        parameter3: homeworkData.parameter3,
+        parameter4: homeworkData.parameter4,
+        parameter5: homeworkData.parameter5,
+        parameter6: homeworkData.parameter6,
+        parameter7: homeworkData.parameter7,
+        parameter8: homeworkData.parameter8,
+        parameter9: homeworkData.parameter9,
+        parameter10: homeworkData.parameter10,
+      }
+      
+      if (homeworkData.type === 'mul') {
+        questions = generateMultiplicationQuestions(
+          homeworkData.question_count,
+          parameters
+        )
+      } else if (homeworkData.type === 'div') {
+        questions = generateDivisionQuestions(
+          homeworkData.question_count,
+          parameters
+        )
+      } else if (homeworkData.type === 'mitori') {
+        questions = generateMitoriQuestions(
+          homeworkData.question_count,
+          parameters
+        )
+      }
     }
 
     // Create homework
@@ -99,6 +116,8 @@ export async function POST(request) {
       .insert({
         student_id: homeworkData.student_id,
         type: homeworkData.type,
+        preset_id: homeworkData.preset_id || null,
+        fixed_question_id: homeworkData.fixed_question_id || null,
         parameter1: homeworkData.parameter1,
         parameter2: homeworkData.parameter2,
         parameter3: homeworkData.parameter3,
@@ -124,6 +143,30 @@ export async function POST(request) {
         { error: 'Failed to create homework' },
         { status: 500 }
       )
+    }
+
+    // プリセットIDが指定されている場合、studentsテーブルのlast_preset_idsを更新
+    if (homeworkData.preset_id) {
+      // 現在のlast_preset_idsを取得
+      const { data: student } = await supabase
+        .from('students')
+        .select('last_preset_ids')
+        .eq('id', homeworkData.student_id)
+        .single()
+
+      const currentPresetIds = student?.last_preset_ids || {}
+      
+      // 種目ごとのプリセットIDを更新
+      const updatedPresetIds = {
+        ...currentPresetIds,
+        [homeworkData.type]: homeworkData.preset_id
+      }
+
+      // studentsテーブルを更新
+      await supabase
+        .from('students')
+        .update({ last_preset_ids: updatedPresetIds })
+        .eq('id', homeworkData.student_id)
     }
 
     return NextResponse.json({ homework })

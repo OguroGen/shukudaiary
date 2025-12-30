@@ -148,9 +148,9 @@ export default function HomeworkQuizPage() {
     const correctAnswer = question.answer
     const isCorrect = studentAnswer === correctAnswer
 
-    // Calculate time spent on this question
+    // Calculate time spent on this question (in milliseconds)
     const timeSpent = questionStartTime ? 
-      Math.floor((Date.now() - questionStartTime) / 1000) : null
+      Date.now() - questionStartTime : null
 
     const newAnswers = [
       ...answers,
@@ -176,7 +176,7 @@ export default function HomeworkQuizPage() {
           student_answer: studentAnswer,
           is_correct: isCorrect,
           question_index: currentIndex,
-          time_spent_seconds: timeSpent,
+          time_spent_milliseconds: timeSpent,
         }),
       }).catch(error => {
         console.error('Error saving answer:', error)
@@ -212,8 +212,8 @@ export default function HomeworkQuizPage() {
   const currentQuestion = questions[currentIndex]
 
   return (
-    <div className="min-h-screen bg-yellow-50 p-2">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-yellow-50 p-2 relative">
+      <div className="max-w-2xl mx-auto pb-20">
         <div className="bg-white rounded-xl shadow-lg p-3 mb-3 border-2 border-blue-300">
           <div className="flex justify-between items-center mb-2">
             <h1 className="text-sm font-bold text-blue-600">
@@ -225,7 +225,7 @@ export default function HomeworkQuizPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-3 border-2 border-green-300">
+        <div className="bg-white rounded-xl shadow-lg p-3 border-2 border-green-300 mb-6">
           <QuestionDisplay
             type={homework.type}
             question={currentQuestion}
@@ -239,15 +239,16 @@ export default function HomeworkQuizPage() {
             submitDisabled={!currentAnswer || isSubmitting}
           />
         </div>
+      </div>
 
-        <div className="mt-3 text-center">
-          <button
-            onClick={handleCancel}
-            className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl border-2 border-gray-300 transition-colors"
-          >
-            やめる
-          </button>
-        </div>
+      {/* やめるボタンを左下に固定配置 */}
+      <div className="fixed bottom-4 left-4">
+        <button
+          onClick={handleCancel}
+          className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl border-2 border-gray-300 transition-colors shadow-md"
+        >
+          やめる
+        </button>
       </div>
     </div>
   )

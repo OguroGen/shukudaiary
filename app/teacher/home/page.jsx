@@ -196,7 +196,7 @@ export default function TeacherHomePage() {
         {/* メニュー */}
         <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6">
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6">メニュー</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <Link
               href="/teacher/students"
               className="group relative bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 rounded-xl p-6 text-white hover:shadow-2xl transition-all duration-200 transform hover:-translate-y-1 overflow-hidden"
@@ -237,6 +237,20 @@ export default function TeacherHomePage() {
                   </svg>
                 </div>
                 <h3 className="text-lg font-semibold">プリセット管理</h3>
+              </div>
+            </Link>
+            <Link
+              href="/teacher/fixed-questions"
+              className="group relative bg-gradient-to-br from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700 rounded-xl p-6 text-white hover:shadow-2xl transition-all duration-200 transform hover:-translate-y-1 overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+              <div className="relative">
+                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold">固定問題管理</h3>
               </div>
             </Link>
             <Link

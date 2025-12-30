@@ -22,9 +22,11 @@ function HomeworkCreatePageContent() {
   const searchParams = useSearchParams()
   const [students, setStudents] = useState([])
   const [presets, setPresets] = useState([])
+  const [fixedQuestions, setFixedQuestions] = useState([])
   const [selectedStudent, setSelectedStudent] = useState('')
   const [type, setType] = useState('mul')
   const [selectedPreset, setSelectedPreset] = useState('')
+  const [selectedFixedQuestion, setSelectedFixedQuestion] = useState('')
   const [parameters, setParameters] = useState(getDefaultParameters('mul'))
   
   // 種目が変わった時にパラメーターをリセット
@@ -74,6 +76,29 @@ function HomeworkCreatePageContent() {
     }
   }, [searchParams, students])
 
+  // 前回使用したプリセットを自動選択
+  useEffect(() => {
+    if (!selectedStudent || !type || students.length === 0 || presets.length === 0) return
+    
+    // 選択された生徒のデータを取得
+    const student = students.find((s) => s.id === selectedStudent)
+    if (!student) return
+    
+    // 種目ごとの最新プリセットIDを取得
+    const lastPresetId = student.last_preset_ids?.[type] || null
+    
+    if (lastPresetId && !selectedPreset) {
+      // プリセットが存在するか確認
+      const preset = presets.find((p) => p.id === lastPresetId)
+      if (preset) {
+        setSelectedPreset(lastPresetId)
+        setType(preset.type)
+        setParameters(getParameters(preset) || getDefaultParameters(preset.type))
+        setQuestionCount(preset.question_count)
+      }
+    }
+  }, [selectedStudent, type, students, presets, selectedPreset])
+
   const loadData = async (supabase, teacherId) => {
     try {
       // Get teacher's school_id from teachers table
@@ -116,6 +141,17 @@ function HomeworkCreatePageContent() {
       if (presetsData) {
         setPresets(presetsData)
       }
+
+      // Get fixed questions
+      const { data: fixedQuestionsData } = await supabase
+        .from('fixed_questions')
+        .select('*')
+        .eq('school_id', teacher.school_id)
+        .order('name')
+
+      if (fixedQuestionsData) {
+        setFixedQuestions(fixedQuestionsData)
+      }
     } catch (error) {
       console.error('Failed to load data:', error)
     }
@@ -123,11 +159,26 @@ function HomeworkCreatePageContent() {
 
   const handlePresetChange = (presetId) => {
     setSelectedPreset(presetId)
+    setSelectedFixedQuestion('') // 固定問題をクリア
     const preset = presets.find((p) => p.id === presetId)
     if (preset) {
       setType(preset.type)
       setParameters(getParameters(preset) || getDefaultParameters(preset.type))
       setQuestionCount(preset.question_count)
+    }
+  }
+
+  const handleFixedQuestionChange = (fixedQuestionId) => {
+    setSelectedFixedQuestion(fixedQuestionId)
+    setSelectedPreset('') // プリセットをクリア
+    
+    const fixedQuestion = fixedQuestions.find((fq) => fq.id === fixedQuestionId)
+    if (fixedQuestion) {
+      setType(fixedQuestion.type)
+      setQuestionCount(fixedQuestion.questions.length)
+      // 固定問題の場合はプレビューを直接設定
+      setPreviewQuestions(fixedQuestion.questions)
+      setShowPreview(true)
     }
   }
 
@@ -175,6 +226,8 @@ function HomeworkCreatePageContent() {
     const homeworkData = {
       student_id: selectedStudent,
       type,
+      preset_id: selectedPreset || null,
+      fixed_question_id: selectedFixedQuestion || null,
       parameter1: parameters.parameter1,
       parameter2: parameters.parameter2,
       parameter3: parameters.parameter3,
@@ -304,20 +357,31 @@ function HomeworkCreatePageContent() {
             <label htmlFor="student" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
               生徒
             </label>
-            <select
-              id="student"
-              value={selectedStudent}
-              onChange={(e) => setSelectedStudent(e.target.value)}
-              required
-              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
-            >
-              <option value="">生徒を選択</option>
-              {students.map((student) => (
-                <option key={student.id} value={student.id}>
-                  {student.nickname} ({student.login_id})
-                </option>
-              ))}
-            </select>
+            {searchParams.get('student_id') ? (
+              (() => {
+                const student = students.find((s) => s.id === selectedStudent)
+                return (
+                  <div className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-700 dark:text-slate-300">
+                    {student ? `${student.nickname} (${student.login_id})` : '読み込み中...'}
+                  </div>
+                )
+              })()
+            ) : (
+              <select
+                id="student"
+                value={selectedStudent}
+                onChange={(e) => setSelectedStudent(e.target.value)}
+                required
+                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
+              >
+                <option value="">生徒を選択</option>
+                {students.map((student) => (
+                  <option key={student.id} value={student.id}>
+                    {student.nickname} ({student.login_id})
+                  </option>
+                ))}
+              </select>
+            )}
             {errors.student_id && (
               <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.student_id}</p>
             )}
@@ -393,7 +457,33 @@ function HomeworkCreatePageContent() {
             </div>
           )}
 
-          {(() => {
+          {fixedQuestions.length > 0 && (
+            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
+              <label
+                htmlFor="fixed_question"
+                className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+              >
+                固定問題（任意）
+              </label>
+              <select
+                id="fixed_question"
+                value={selectedFixedQuestion}
+                onChange={(e) => handleFixedQuestionChange(e.target.value)}
+                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
+              >
+                <option value="">なし</option>
+                {fixedQuestions
+                  .filter((fq) => fq.type === type)
+                  .map((fixedQuestion) => (
+                    <option key={fixedQuestion.id} value={fixedQuestion.id}>
+                      {fixedQuestion.name} ({fixedQuestion.questions.length}問)
+                    </option>
+                  ))}
+              </select>
+            </div>
+          )}
+
+          {!selectedFixedQuestion && (() => {
             const problemType = getProblemType(type)
             if (!problemType) return null
             
@@ -427,31 +517,33 @@ function HomeworkCreatePageContent() {
             ))
           })()}
 
-          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-            <label
-              htmlFor="question_count"
-              className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
-            >
-              問題数
-            </label>
-              <input
-                id="question_count"
-                type="number"
-                min="1"
-                max="100"
-                value={questionCount}
-              onChange={(e) =>
-                setQuestionCount(parseInt(e.target.value, 10))
-              }
-              required
-              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
-            />
-            {errors.question_count && (
-              <p className="text-red-600 dark:text-red-400 text-sm mt-1">
-                {errors.question_count}
-              </p>
-            )}
-          </div>
+          {!selectedFixedQuestion && (
+            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
+              <label
+                htmlFor="question_count"
+                className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+              >
+                問題数
+              </label>
+                <input
+                  id="question_count"
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={questionCount}
+                onChange={(e) =>
+                  setQuestionCount(parseInt(e.target.value, 10))
+                }
+                required
+                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
+              />
+              {errors.question_count && (
+                <p className="text-red-600 dark:text-red-400 text-sm mt-1">
+                  {errors.question_count}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
             <label
@@ -514,15 +606,17 @@ function HomeworkCreatePageContent() {
             </p>
           </div>
 
-          <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={generatePreviewQuestions}
-              className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
-            >
-              問題をプレビュー
-            </button>
-          </div>
+          {!selectedFixedQuestion && (
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={generatePreviewQuestions}
+                className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+              >
+                問題をプレビュー
+              </button>
+            </div>
+          )}
 
           {showPreview && previewQuestions.length > 0 && (
             <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 bg-slate-50 dark:bg-slate-900/50">

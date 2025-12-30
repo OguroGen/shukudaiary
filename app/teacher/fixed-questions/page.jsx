@@ -7,9 +7,9 @@ import { createClient } from '@/lib/supabase/client'
 import { getTypeName, getTypeColor } from '@/lib/utils/homework'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 
-export default function PresetsListPage() {
+export default function FixedQuestionsListPage() {
   const router = useRouter()
-  const [presets, setPresets] = useState([])
+  const [fixedQuestions, setFixedQuestions] = useState([])
   const [selectedTypes, setSelectedTypes] = useState(['mul', 'div', 'mitori']) // 初期値はすべて選択
   const [loading, setLoading] = useState(true)
 
@@ -22,11 +22,11 @@ export default function PresetsListPage() {
         return
       }
 
-      loadPresets(supabase, session.user.id)
+      loadFixedQuestions(supabase, session.user.id)
     })
   }, [router])
 
-  const loadPresets = async (supabase, teacherId) => {
+  const loadFixedQuestions = async (supabase, teacherId) => {
     try {
       // Get teacher's school_id
       const { data: teacher } = await supabase
@@ -37,28 +37,28 @@ export default function PresetsListPage() {
 
       if (!teacher) return
 
-      // Get presets
+      // Get fixed questions
       const { data } = await supabase
-        .from('presets')
+        .from('fixed_questions')
         .select('*')
         .eq('school_id', teacher.school_id)
         .order('name')
 
       if (data) {
-        setPresets(data)
+        setFixedQuestions(data)
       }
     } catch (error) {
-      console.error('Failed to load presets:', error)
+      console.error('Failed to load fixed questions:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleDelete = async (presetId) => {
-    if (!confirm('このプリセットを削除しますか？')) return
+  const handleDelete = async (fixedQuestionId) => {
+    if (!confirm('この固定問題を削除しますか？')) return
 
     try {
-      const response = await fetch(`/api/teacher/presets/${presetId}`, {
+      const response = await fetch(`/api/teacher/fixed-questions/${fixedQuestionId}`, {
         method: 'DELETE',
       })
 
@@ -66,7 +66,7 @@ export default function PresetsListPage() {
         const supabase = createClient()
         supabase.auth.getSession().then(({ data: { session } }) => {
           if (session) {
-            loadPresets(supabase, session.user.id)
+            loadFixedQuestions(supabase, session.user.id)
           }
         })
       } else {
@@ -78,15 +78,6 @@ export default function PresetsListPage() {
     }
   }
 
-
-  const getDetails = (preset) => {
-    if (preset.type === 'mitori') {
-      return `行数: ${preset.parameter2 || ''}, 問題数: ${preset.question_count}`
-    } else {
-      return `パラメーター1: ${preset.parameter1 || ''}桁, パラメーター2: ${preset.parameter2 || ''}桁, 問題数: ${preset.question_count}`
-    }
-  }
-
   const toggleType = (type) => {
     setSelectedTypes(prev => 
       prev.includes(type) 
@@ -95,12 +86,12 @@ export default function PresetsListPage() {
     )
   }
 
-  // 種目別にプリセットを分類（useMemoで最適化）
-  const presetsByType = useMemo(() => ({
-    mul: presets.filter(p => p.type === 'mul'),
-    div: presets.filter(p => p.type === 'div'),
-    mitori: presets.filter(p => p.type === 'mitori')
-  }), [presets])
+  // 種目別に固定問題を分類（useMemoで最適化）
+  const fixedQuestionsByType = useMemo(() => ({
+    mul: fixedQuestions.filter(fq => fq.type === 'mul'),
+    div: fixedQuestions.filter(fq => fq.type === 'div'),
+    mitori: fixedQuestions.filter(fq => fq.type === 'mitori')
+  }), [fixedQuestions])
 
   const typeOptions = [
     { value: 'mul', name: getTypeName('mul'), color: getTypeColor('mul') },
@@ -119,7 +110,7 @@ export default function PresetsListPage() {
         <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6 mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">
-              プリセット管理
+              固定問題管理
             </h1>
             <div className="flex gap-3">
               <Link
@@ -129,10 +120,10 @@ export default function PresetsListPage() {
                 ホームに戻る
               </Link>
               <Link
-                href="/teacher/presets/new"
+                href="/teacher/fixed-questions/new"
                 className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl hover:from-cyan-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
               >
-                プリセットを追加
+                固定問題を追加
               </Link>
             </div>
           </div>
@@ -163,21 +154,21 @@ export default function PresetsListPage() {
           </div>
         </div>
 
-        {/* プリセット一覧（種目別） */}
-        {presets.length === 0 ? (
+        {/* 固定問題一覧（種目別） */}
+        {fixedQuestions.length === 0 ? (
           <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 p-6">
             <div className="text-center py-12">
               <svg className="w-16 h-16 text-slate-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <p className="text-slate-600 dark:text-slate-400 font-medium">プリセットはまだありません。</p>
+              <p className="text-slate-600 dark:text-slate-400 font-medium">固定問題はまだありません。</p>
             </div>
           </div>
         ) : (
           <div className="space-y-6">
             {typeOptions.map((option) => {
-              const typePresets = presetsByType[option.value]
-              if (!selectedTypes.includes(option.value) || typePresets.length === 0) {
+              const typeFixedQuestions = fixedQuestionsByType[option.value]
+              if (!selectedTypes.includes(option.value) || typeFixedQuestions.length === 0) {
                 return null
               }
 
@@ -191,33 +182,33 @@ export default function PresetsListPage() {
                       {option.name}
                     </span>
                     <span className="text-slate-500 dark:text-slate-400 text-sm font-normal">
-                      ({typePresets.length}件)
+                      ({typeFixedQuestions.length}件)
                     </span>
                   </h2>
                   <div className="space-y-3">
-                    {typePresets.map((preset) => (
+                    {typeFixedQuestions.map((fixedQuestion) => (
                       <div
-                        key={preset.id}
+                        key={fixedQuestion.id}
                         className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 hover:shadow-lg transition-all duration-200"
                       >
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                           <div className="flex-1">
                             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">
-                              {preset.name}
+                              {fixedQuestion.name}
                             </h3>
                             <p className="text-sm text-slate-600 dark:text-slate-400">
-                              {getDetails(preset)}
+                              {fixedQuestion.questions?.length || 0}問
                             </p>
                           </div>
                           <div className="flex gap-2">
                             <Link
-                              href={`/teacher/presets/${preset.id}`}
+                              href={`/teacher/fixed-questions/${fixedQuestion.id}`}
                               className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap"
                             >
                               編集
                             </Link>
                             <button
-                              onClick={() => handleDelete(preset.id)}
+                              onClick={() => handleDelete(fixedQuestion.id)}
                               className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl hover:from-red-700 hover:to-pink-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap"
                             >
                               削除

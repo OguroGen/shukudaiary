@@ -12,7 +12,7 @@ export async function POST(request) {
       student_answer,
       is_correct,
       question_index,
-      time_spent_seconds,
+      time_spent_milliseconds,
     } = await request.json()
 
     const token = request.headers.get('authorization')?.replace('Bearer ', '')
@@ -94,7 +94,7 @@ export async function POST(request) {
       student_answer,
       is_correct,
       question_index,
-      time_spent_seconds: time_spent_seconds || null,
+      time_spent_milliseconds: time_spent_milliseconds || null,
     }
 
     const { data, error } = await supabase
