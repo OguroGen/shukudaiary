@@ -68,9 +68,9 @@ export async function GET(request) {
       return NextResponse.json({ homeworks: [] })
     }
 
-    // Filter out completed homeworks using status column
+    // Filter out completed and cancelled homeworks using status column
     const incompleteHomeworks = homeworks.filter((homework) => {
-      return homework.status !== 'completed'
+      return homework.status !== 'completed' && homework.status !== 'cancelled'
     })
 
     return NextResponse.json({ homeworks: incompleteHomeworks })

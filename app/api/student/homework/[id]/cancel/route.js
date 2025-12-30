@@ -34,7 +34,7 @@ export async function POST(request, { params }) {
     // Verify homework belongs to student
     const { data: homework, error: homeworkError } = await supabase
       .from('homeworks')
-      .select('student_id, started_at, status')
+      .select('student_id, status')
       .eq('id', homeworkId)
       .single()
 
@@ -52,30 +52,20 @@ export async function POST(request, { params }) {
       )
     }
 
-    // Prevent starting cancelled homeworks
-    if (homework.status === 'cancelled') {
+    // Update status to cancelled
+    const { error: updateError } = await supabase
+      .from('homeworks')
+      .update({ status: 'cancelled' })
+      .eq('id', homeworkId)
+
+    if (updateError) {
       return NextResponse.json(
-        { error: 'This homework has been cancelled and cannot be started' },
-        { status: 400 }
+        { error: 'Failed to cancel homework' },
+        { status: 500 }
       )
     }
 
-    // Update started_at if not already set
-    if (!homework.started_at) {
-      const { error: updateError } = await supabase
-        .from('homeworks')
-        .update({ started_at: new Date().toISOString() })
-        .eq('id', homeworkId)
-
-      if (updateError) {
-        return NextResponse.json(
-          { error: 'Failed to record start time' },
-          { status: 500 }
-        )
-      }
-    }
-
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, status: 'cancelled' })
   } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error' },

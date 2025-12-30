@@ -40,6 +40,9 @@ export default function HomeworkStartPage() {
       .then((data) => {
         if (data.error) {
           router.push(getStudentUrl(schoolSlug, 'home'))
+        } else if (data.homework.status === 'cancelled') {
+          // Redirect to home if homework is cancelled
+          router.push(getStudentUrl(schoolSlug, 'home'))
         } else {
           setHomework(data.homework)
         }

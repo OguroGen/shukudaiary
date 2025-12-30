@@ -36,13 +36,13 @@ function QuestionDisplay({ type, question, currentAnswer }) {
 
   // Mitori
   return (
-    <div className="text-center py-4 bg-yellow-50 rounded-xl p-3 border-2 border-yellow-200 mb-3">
-      <div className="text-xl font-bold mb-3 text-gray-800 space-y-0">
+    <div className="text-center py-0 bg-yellow-50 rounded-xl p-3 border-2 border-yellow-200 mb-3">
+      <div className="text-xl font-bold mb-0 text-gray-800 space-y-0 flex flex-col items-center">
         {question.numbers?.map((num, idx) => {
           const isNegative = num < 0
           const absoluteValue = Math.abs(num)
           return (
-            <div key={idx} className="text-right pr-6 leading-tight">
+            <div key={idx} className="text-center leading-tight">
               {isNegative && (
                 <span className="text-gray-600 mx-1">-</span>
               )}

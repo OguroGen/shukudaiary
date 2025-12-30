@@ -53,6 +53,12 @@ export default function HomeworkQuizPage() {
           return
         }
 
+        // Check if homework is cancelled
+        if (data.homework.status === 'cancelled') {
+          router.push(getStudentUrl(schoolSlug, 'home'))
+          return
+        }
+
         setHomework(data.homework)
         // Use questions from database
         if (data.homework.questions && Array.isArray(data.homework.questions)) {
@@ -97,6 +103,38 @@ export default function HomeworkQuizPage() {
 
   const handleClear = () => {
     setCurrentAnswer('')
+  }
+
+  const handleCancel = async () => {
+    if (!confirm('宿題をやめますか？')) {
+      return
+    }
+
+    const token = getToken()
+    if (!token) {
+      router.push(getStudentUrl(schoolSlug, 'home'))
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/student/homework/${homeworkId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (res.ok) {
+        router.push(getStudentUrl(schoolSlug, 'home'))
+      } else {
+        // エラーが発生してもホームに戻る
+        router.push(getStudentUrl(schoolSlug, 'home'))
+      }
+    } catch (error) {
+      console.error('Error cancelling homework:', error)
+      // エラーが発生してもホームに戻る
+      router.push(getStudentUrl(schoolSlug, 'home'))
+    }
   }
 
   const handleSubmit = async () => {
@@ -200,6 +238,15 @@ export default function HomeworkQuizPage() {
             onSubmit={handleSubmit}
             submitDisabled={!currentAnswer || isSubmitting}
           />
+        </div>
+
+        <div className="mt-3 text-center">
+          <button
+            onClick={handleCancel}
+            className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl border-2 border-gray-300 transition-colors"
+          >
+            やめる
+          </button>
         </div>
       </div>
     </div>
