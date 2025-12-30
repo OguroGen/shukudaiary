@@ -132,6 +132,7 @@ export async function POST(request) {
         due_date_start: homeworkData.due_date_start,
         due_date_end: homeworkData.due_date_end,
         message: homeworkData.message || null,
+        name: homeworkData.name || null,
         questions: questions,
         status: 'not_started',
       })

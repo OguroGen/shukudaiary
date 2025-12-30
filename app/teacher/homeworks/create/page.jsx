@@ -38,6 +38,7 @@ function HomeworkCreatePageContent() {
   const [dueDateStart, setDueDateStart] = useState('')
   const [dueDateEnd, setDueDateEnd] = useState('')
   const [message, setMessage] = useState('')
+  const [name, setName] = useState('')
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [previewQuestions, setPreviewQuestions] = useState([])
@@ -94,6 +95,8 @@ function HomeworkCreatePageContent() {
         setType(preset.type)
         setParameters(getParameters(preset) || getDefaultParameters(preset.type))
         setQuestionCount(preset.question_count)
+        // プリセット名を初期値として設定
+        setName(preset.name)
       }
     }
   }, [selectedStudent, type, students, presets, selectedPreset])
@@ -164,6 +167,11 @@ function HomeworkCreatePageContent() {
       setType(preset.type)
       setParameters(getParameters(preset) || getDefaultParameters(preset.type))
       setQuestionCount(preset.question_count)
+      // プリセット名を初期値として設定
+      setName(preset.name)
+    } else {
+      // プリセットが選択されていない場合は空文字列
+      setName('')
     }
   }
 
@@ -178,6 +186,11 @@ function HomeworkCreatePageContent() {
       // 固定問題の場合はプレビューを直接設定
       setPreviewQuestions(fixedQuestion.questions)
       setShowPreview(true)
+      // 固定問題名を初期値として設定
+      setName(fixedQuestion.name)
+    } else {
+      // 固定問題が選択されていない場合は空文字列
+      setName('')
     }
   }
 
@@ -241,6 +254,7 @@ function HomeworkCreatePageContent() {
       due_date_start: dueDateStart,
       due_date_end: dueDateEnd,
       message: message.trim() || null,
+      name: name.trim() || null,
     }
 
     const validationErrors = validateHomeworkData(homeworkData)
@@ -352,245 +366,304 @@ function HomeworkCreatePageContent() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-            <label htmlFor="student" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-              生徒
-            </label>
-            {searchParams.get('student_id') ? (
-              (() => {
-                const student = students.find((s) => s.id === selectedStudent)
-                return (
-                  <div className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-700 dark:text-slate-300">
-                    {student ? `${student.nickname} (${student.login_id})` : '読み込み中...'}
+          {/* 基本情報セクション */}
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 pb-2 border-b border-slate-200 dark:border-slate-700">
+              基本情報
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label htmlFor="student" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  生徒
+                </label>
+                {searchParams.get('student_id') ? (
+                  (() => {
+                    const student = students.find((s) => s.id === selectedStudent)
+                    return (
+                      <div className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-700 dark:text-slate-300">
+                        {student ? `${student.nickname} (${student.login_id})` : '読み込み中...'}
+                      </div>
+                    )
+                  })()
+                ) : (
+                  <select
+                    id="student"
+                    value={selectedStudent}
+                    onChange={(e) => setSelectedStudent(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
+                  >
+                    <option value="">生徒を選択</option>
+                    {students.map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {student.nickname} ({student.login_id})
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {errors.student_id && (
+                  <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.student_id}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="type" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  種目
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="type"
+                      value="mul"
+                      checked={type === 'mul'}
+                      onChange={(e) => setType(e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className="text-slate-700 dark:text-slate-300">かけ算</span>
+                  </label>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="type"
+                      value="div"
+                      checked={type === 'div'}
+                      onChange={(e) => setType(e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className="text-slate-700 dark:text-slate-300">わり算</span>
+                  </label>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="type"
+                      value="mitori"
+                      checked={type === 'mitori'}
+                      onChange={(e) => setType(e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className="text-slate-700 dark:text-slate-300">{getTypeName('mitori')}</span>
+                  </label>
+                </div>
+                {errors.type && (
+                  <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.type}</p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+                >
+                  宿題名
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="宿題の名前を入力"
+                  maxLength={100}
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  {name.length}/100文字
+                </p>
+                {errors.name && (
+                  <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.name}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* プリセット・固定問題セクション */}
+          {(presets.length > 0 || fixedQuestions.length > 0) && (
+            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 pb-2 border-b border-slate-200 dark:border-slate-700">
+                プリセット・固定問題（任意）
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {presets.length > 0 && (
+                  <div>
+                    <label
+                      htmlFor="preset"
+                      className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+                    >
+                      プリセット
+                    </label>
+                    <select
+                      id="preset"
+                      value={selectedPreset}
+                      onChange={(e) => handlePresetChange(e.target.value)}
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
+                    >
+                      <option value="">なし（手動入力）</option>
+                      {presets
+                        .filter((p) => p.type === type)
+                        .map((preset) => (
+                          <option key={preset.id} value={preset.id}>
+                            {preset.name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
-                )
-              })()
-            ) : (
-              <select
-                id="student"
-                value={selectedStudent}
-                onChange={(e) => setSelectedStudent(e.target.value)}
-                required
-                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
-              >
-                <option value="">生徒を選択</option>
-                {students.map((student) => (
-                  <option key={student.id} value={student.id}>
-                    {student.nickname} ({student.login_id})
-                  </option>
-                ))}
-              </select>
-            )}
-            {errors.student_id && (
-              <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.student_id}</p>
-            )}
-          </div>
+                )}
 
-          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-            <label htmlFor="type" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-              種目
-            </label>
-            <div className="flex gap-4">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  name="type"
-                  value="mul"
-                  checked={type === 'mul'}
-                  onChange={(e) => setType(e.target.value)}
-                  className="mr-2"
-                />
-                <span className="text-slate-700 dark:text-slate-300">かけ算</span>
-              </label>
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  name="type"
-                  value="div"
-                  checked={type === 'div'}
-                  onChange={(e) => setType(e.target.value)}
-                  className="mr-2"
-                />
-                <span className="text-slate-700 dark:text-slate-300">わり算</span>
-              </label>
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  name="type"
-                  value="mitori"
-                  checked={type === 'mitori'}
-                  onChange={(e) => setType(e.target.value)}
-                  className="mr-2"
-                />
-                <span className="text-slate-700 dark:text-slate-300">{getTypeName('mitori')}</span>
-              </label>
-            </div>
-            {errors.type && (
-              <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.type}</p>
-            )}
-          </div>
-
-          {presets.length > 0 && (
-            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-              <label
-                htmlFor="preset"
-                className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
-              >
-                プリセット（任意）
-              </label>
-              <select
-                id="preset"
-                value={selectedPreset}
-                onChange={(e) => handlePresetChange(e.target.value)}
-                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
-              >
-                <option value="">なし（手動入力）</option>
-                {presets
-                  .filter((p) => p.type === type)
-                  .map((preset) => (
-                    <option key={preset.id} value={preset.id}>
-                      {preset.name}
-                    </option>
-                  ))}
-              </select>
+                {fixedQuestions.length > 0 && (
+                  <div>
+                    <label
+                      htmlFor="fixed_question"
+                      className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+                    >
+                      固定問題
+                    </label>
+                    <select
+                      id="fixed_question"
+                      value={selectedFixedQuestion}
+                      onChange={(e) => handleFixedQuestionChange(e.target.value)}
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
+                    >
+                      <option value="">なし</option>
+                      {fixedQuestions
+                        .filter((fq) => fq.type === type)
+                        .map((fixedQuestion) => (
+                          <option key={fixedQuestion.id} value={fixedQuestion.id}>
+                            {fixedQuestion.name} ({fixedQuestion.questions.length}問)
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          {fixedQuestions.length > 0 && (
-            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-              <label
-                htmlFor="fixed_question"
-                className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
-              >
-                固定問題（任意）
-              </label>
-              <select
-                id="fixed_question"
-                value={selectedFixedQuestion}
-                onChange={(e) => handleFixedQuestionChange(e.target.value)}
-                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
-              >
-                <option value="">なし</option>
-                {fixedQuestions
-                  .filter((fq) => fq.type === type)
-                  .map((fixedQuestion) => (
-                    <option key={fixedQuestion.id} value={fixedQuestion.id}>
-                      {fixedQuestion.name} ({fixedQuestion.questions.length}問)
-                    </option>
-                  ))}
-              </select>
-            </div>
-          )}
-
+          {/* 問題設定セクション */}
           {!selectedFixedQuestion && (() => {
             const problemType = getProblemType(type)
             if (!problemType) return null
             
-            return Object.entries(problemType.parameters).map(([key, config]) => (
-              <div key={key} className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-                <label
-                  htmlFor={key}
-                  className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
-                >
-                  {config.label}
-                </label>
-                <input
-                  id={key}
-                  type="number"
-                  min={config.min}
-                  max={config.max}
-                  value={parameters[key] ?? config.default}
-                  onChange={(e) => setParameters({
-                    ...parameters,
-                    [key]: parseInt(e.target.value, 10) || null
-                  })}
-                  required={config.required}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
-                />
-                {errors[key] && (
-                  <p className="text-red-600 dark:text-red-400 text-sm mt-1">
-                    {errors[key]}
-                  </p>
-                )}
+            const paramEntries = Object.entries(problemType.parameters)
+            if (paramEntries.length === 0) return null
+            
+            return (
+              <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+                <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 pb-2 border-b border-slate-200 dark:border-slate-700">
+                  問題設定
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {paramEntries.map(([key, config]) => (
+                    <div key={key}>
+                      <label
+                        htmlFor={key}
+                        className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+                      >
+                        {config.label}
+                      </label>
+                      <input
+                        id={key}
+                        type="number"
+                        min={config.min}
+                        max={config.max}
+                        value={parameters[key] ?? config.default}
+                        onChange={(e) => setParameters({
+                          ...parameters,
+                          [key]: parseInt(e.target.value, 10) || null
+                        })}
+                        required={config.required}
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
+                      />
+                      {errors[key] && (
+                        <p className="text-red-600 dark:text-red-400 text-sm mt-1">
+                          {errors[key]}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                  
+                  <div>
+                    <label
+                      htmlFor="question_count"
+                      className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+                    >
+                      問題数
+                    </label>
+                    <input
+                      id="question_count"
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={questionCount}
+                      onChange={(e) =>
+                        setQuestionCount(parseInt(e.target.value, 10))
+                      }
+                      required
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
+                    />
+                    {errors.question_count && (
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">
+                        {errors.question_count}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
-            ))
+            )
           })()}
 
-          {!selectedFixedQuestion && (
-            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-              <label
-                htmlFor="question_count"
-                className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
-              >
-                問題数
-              </label>
+          {/* 期限セクション */}
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 pb-2 border-b border-slate-200 dark:border-slate-700">
+              期限
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="start_date"
+                  className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+                >
+                  期限開始日
+                </label>
                 <input
-                  id="question_count"
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={questionCount}
-                onChange={(e) =>
-                  setQuestionCount(parseInt(e.target.value, 10))
-                }
-                required
-                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
-              />
-              {errors.question_count && (
-                <p className="text-red-600 dark:text-red-400 text-sm mt-1">
-                  {errors.question_count}
-                </p>
-              )}
+                  id="start_date"
+                  type="date"
+                  value={dueDateStart}
+                  onChange={(e) => setDueDateStart(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
+                />
+                {errors.due_date_start && (
+                  <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.due_date_start}</p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="end_date"
+                  className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+                >
+                  期限終了日
+                </label>
+                <input
+                  id="end_date"
+                  type="date"
+                  value={dueDateEnd}
+                  onChange={(e) => setDueDateEnd(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
+                />
+                {errors.due_date_end && (
+                  <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.due_date_end}</p>
+                )}
+              </div>
             </div>
-          )}
-
-          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-            <label
-              htmlFor="start_date"
-              className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
-            >
-              期限開始日
-            </label>
-            <input
-              id="start_date"
-              type="date"
-              value={dueDateStart}
-              onChange={(e) => setDueDateStart(e.target.value)}
-              required
-              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
-            />
-            {errors.due_date_start && (
-              <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.due_date_start}</p>
-            )}
           </div>
 
-          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-            <label
-              htmlFor="end_date"
-              className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
-            >
-              期限終了日
-            </label>
-            <input
-              id="end_date"
-              type="date"
-              value={dueDateEnd}
-              onChange={(e) => setDueDateEnd(e.target.value)}
-              required
-              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
-            />
-            {errors.due_date_end && (
-              <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.due_date_end}</p>
-            )}
-          </div>
-
-          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-            <label
-              htmlFor="message"
-              className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
-            >
+          {/* メッセージセクション */}
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 pb-2 border-b border-slate-200 dark:border-slate-700">
               メッセージ（任意）
-            </label>
+            </h2>
             <textarea
               id="message"
               value={message}
