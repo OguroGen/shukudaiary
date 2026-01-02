@@ -54,7 +54,7 @@ export default function HomeworkStartPage() {
   }, [homeworkId, router, schoolSlug, authLoading, isAuthenticated, getToken, requireAuth])
 
   const handleStart = () => {
-    router.push(getStudentUrl(schoolSlug, `homework/${homeworkId}/quiz`))
+    router.push(getStudentUrl(schoolSlug, `homework/${homeworkId}/practice`))
   }
 
   if (authLoading || loading) {

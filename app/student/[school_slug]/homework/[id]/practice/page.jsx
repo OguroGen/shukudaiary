@@ -8,7 +8,7 @@ import NumericKeypad from '@/components/student/NumericKeypad'
 import QuestionDisplay from '@/components/student/QuestionDisplay'
 import LoadingState from '@/components/student/LoadingState'
 
-export default function HomeworkQuizPage() {
+export default function HomeworkPracticePage() {
   const router = useRouter()
   const params = useParams()
   const homeworkId = params.id
@@ -253,4 +253,5 @@ export default function HomeworkQuizPage() {
     </div>
   )
 }
+
 
