@@ -18,6 +18,7 @@ export default function HomeworkResultPage() {
   const [homework, setHomework] = useState(null)
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [currentRetryAttempt, setCurrentRetryAttempt] = useState(0)
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -55,13 +56,21 @@ export default function HomeworkResultPage() {
         setHomework(homeworkData.homework)
 
         if (answersData.answers) {
-          const total = answersData.answers.length
-          const correct = answersData.answers.filter(
+          // retry_attemptが0の回答のみを集計（最初の回答のみ）
+          const initialAnswers = answersData.answers.filter(a => a.retry_attempt === 0)
+          const total = initialAnswers.length
+          const correct = initialAnswers.filter(
             (a) => a.is_correct
           ).length
-          const wrongAnswers = answersData.answers.filter(
+          const wrongAnswers = initialAnswers.filter(
             (a) => !a.is_correct
           )
+
+          // 最新のretry_attemptを取得
+          const maxRetryAttempt = answersData.answers.reduce((max, a) => 
+            Math.max(max, a.retry_attempt || 0), 0
+          )
+          setCurrentRetryAttempt(maxRetryAttempt)
 
           setResult({ total, correct, wrongAnswers })
         }
@@ -85,6 +94,17 @@ export default function HomeworkResultPage() {
   }
 
   const percentage = Math.round((result.correct / result.total) * 100)
+
+  const handleStartRetry = () => {
+    const nextAttempt = currentRetryAttempt + 1
+    if (nextAttempt <= (homework.retry_count || 0)) {
+      router.push(getStudentUrl(schoolSlug, `homework/${homeworkId}/practice?retry=true&attempt=${nextAttempt}`))
+    }
+  }
+
+  const canRetry = homework.retry_count > 0 && 
+                   result.wrongAnswers.length > 0 && 
+                   currentRetryAttempt < homework.retry_count
 
   return (
     <div className="min-h-screen bg-yellow-50 p-2">
@@ -123,6 +143,24 @@ export default function HomeworkResultPage() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {canRetry && (
+          <div className="mb-4 p-4 bg-blue-50 rounded-xl border-2 border-blue-300">
+            <h2 className="text-sm font-bold mb-2 text-blue-600">間違った問題を再度解く</h2>
+            <p className="text-xs text-gray-600 mb-3">
+              間違った問題を{homework.retry_count}回まで繰り返し解くことができます。
+              {currentRetryAttempt > 0 && (
+                <span className="block mt-1">現在 {currentRetryAttempt} 回目の繰り返しが完了しています。</span>
+              )}
+            </p>
+            <button
+              onClick={handleStartRetry}
+              className="w-full px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 text-center font-bold text-sm shadow-md transform hover:scale-105 transition-transform"
+            >
+              🔄 間違った問題を再度解く ({currentRetryAttempt + 1}回目)
+            </button>
           </div>
         )}
 

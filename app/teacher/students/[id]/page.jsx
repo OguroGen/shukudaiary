@@ -320,7 +320,7 @@ export default function StudentDetailPage() {
                 <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
                   {student.nickname}
                 </h2>
-                <p className="text-slate-600 dark:text-slate-400 mt-1 font-mono text-sm">ID: {student.login_id}</p>
+                <p className="text-slate-600 dark:text-slate-400 mt-1 font-mono text-sm">ログインID: {student.login_id}</p>
                 {student.last_activity && (
                   <p className="text-slate-500 dark:text-slate-500 text-xs mt-1">
                     最終活動: {new Date(student.last_activity).toLocaleDateString('ja-JP')}

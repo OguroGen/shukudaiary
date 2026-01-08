@@ -4,15 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import {
-  generateMultiplicationQuestion,
-} from '@/lib/problems/multiplication'
-import {
-  generateDivisionQuestion,
-} from '@/lib/problems/division'
-import {
-  generateMitoriQuestion,
-} from '@/lib/problems/mitori'
 
 export default function FixedQuestionEditPage() {
   const router = useRouter()
@@ -66,11 +57,11 @@ export default function FixedQuestionEditPage() {
   const addQuestion = () => {
     let newQuestion
     if (type === 'mul') {
-      newQuestion = generateMultiplicationQuestion({})
+      newQuestion = { type: 'mul', left: 1, right: 1, answer: 1 }
     } else if (type === 'div') {
-      newQuestion = generateDivisionQuestion({})
+      newQuestion = { type: 'div', dividend: 1, divisor: 1, answer: 1 }
     } else if (type === 'mitori') {
-      newQuestion = generateMitoriQuestion({})
+      newQuestion = { type: 'mitori', numbers: [1, 1], answer: 2 }
     } else {
       return
     }
@@ -94,14 +85,26 @@ export default function FixedQuestionEditPage() {
           updated[index].answer = Math.floor(updated[index].dividend / updated[index].divisor)
         }
       } else if (field.startsWith('numbers_')) {
-        // For mitori, update numbers array
-        const numValue = parseInt(value, 10) || 0
+        // For mitori, update numbers array (負の数も許容)
+        const numValue = value === '' ? 0 : parseInt(value, 10) || 0
         const numIndex = parseInt(field.split('_')[1], 10)
         if (updated[index].numbers && updated[index].numbers[numIndex] !== undefined) {
           updated[index].numbers[numIndex] = numValue
           updated[index].answer = updated[index].numbers.reduce((sum, num) => sum + num, 0)
         }
       }
+      setQuestions(updated)
+    }
+  }
+
+  const addMitoriTerm = (questionIndex) => {
+    const updated = [...questions]
+    if (updated[questionIndex] && updated[questionIndex].type === 'mitori') {
+      if (!updated[questionIndex].numbers) {
+        updated[questionIndex].numbers = []
+      }
+      updated[questionIndex].numbers.push(1)
+      updated[questionIndex].answer = updated[questionIndex].numbers.reduce((sum, num) => sum + num, 0)
       setQuestions(updated)
     }
   }
@@ -160,11 +163,11 @@ export default function FixedQuestionEditPage() {
       // 新しい種目の問題を1つ追加
       let newQuestion
       if (type === 'mul') {
-        newQuestion = generateMultiplicationQuestion({})
+        newQuestion = { type: 'mul', left: 1, right: 1, answer: 1 }
       } else if (type === 'div') {
-        newQuestion = generateDivisionQuestion({})
+        newQuestion = { type: 'div', dividend: 1, divisor: 1, answer: 1 }
       } else if (type === 'mitori') {
-        newQuestion = generateMitoriQuestion({})
+        newQuestion = { type: 'mitori', numbers: [1, 1], answer: 2 }
       }
       if (newQuestion) {
         setQuestions([newQuestion])
@@ -279,18 +282,18 @@ export default function FixedQuestionEditPage() {
               {errors.questions && (
                 <p className="text-red-600 dark:text-red-400 text-sm mb-2">{errors.questions}</p>
               )}
-              <div className="space-y-3 max-h-96 overflow-y-auto">
+              <div className={type === 'mitori' ? "flex flex-wrap gap-3 max-h-96 overflow-y-auto" : "space-y-3 max-h-96 overflow-y-auto"}>
                 {questions.map((question, index) => (
                   <div
                     key={index}
-                    className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 bg-white dark:bg-slate-800"
+                    className={`border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 ${type === 'mitori' ? 'w-auto min-w-fit p-2' : 'p-3'}`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-sm">問題 {index + 1}</span>
+                    <div className={`flex items-center justify-between ${type === 'mitori' ? 'mb-1' : 'mb-2'}`}>
+                      <span className={`font-semibold ${type === 'mitori' ? 'text-xs' : 'text-sm'}`}>問題 {index + 1}</span>
                       <button
                         type="button"
                         onClick={() => removeQuestion(index)}
-                        className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+                        className={`${type === 'mitori' ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-1 text-xs'} bg-red-500 text-white rounded hover:bg-red-600`}
                       >
                         削除
                       </button>
@@ -343,28 +346,51 @@ export default function FixedQuestionEditPage() {
                     )}
                     {question.type === 'mitori' && (
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {question.numbers?.map((num, numIndex) => (
-                            <div key={numIndex} className="flex items-center gap-1">
-                              <input
-                                type="number"
-                                value={num}
-                                onChange={(e) =>
-                                  handleQuestionEdit(
-                                    index,
-                                    `numbers_${numIndex}`,
-                                    e.target.value
-                                  )
-                                }
-                                className="w-20 px-2 py-1 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm"
-                              />
-                              {numIndex < question.numbers.length - 1 && (
-                                <span className="text-slate-700 dark:text-slate-300">+</span>
-                              )}
+                        <div className="flex items-end gap-1">
+                          <div className="flex flex-col items-end gap-1">
+                            {question.numbers?.map((num, numIndex) => (
+                              <div key={numIndex} className="flex items-center gap-1">
+                                {num < 0 && (
+                                  <span className="text-slate-700 dark:text-slate-300 text-sm w-4 text-center">-</span>
+                                )}
+                                {num >= 0 && (
+                                  <span className="text-slate-700 dark:text-slate-300 text-sm w-4 text-center"> </span>
+                                )}
+                                <input
+                                  type="number"
+                                  value={num}
+                                  onChange={(e) =>
+                                    handleQuestionEdit(
+                                      index,
+                                      `numbers_${numIndex}`,
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-16 px-1.5 py-1 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm text-right"
+                                />
+                              </div>
+                            ))}
+                            <div className="border-t border-slate-400 dark:border-slate-500 my-1" style={{ width: 'calc(1rem + 4rem)' }}></div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-slate-700 dark:text-slate-300 text-sm w-4 text-center"> </span>
+                              <div className="w-16 px-1.5 py-1 text-right font-semibold text-slate-800 dark:text-slate-200 text-sm border border-transparent">
+                                {question.answer}
+                              </div>
                             </div>
-                          ))}
-                          <span className="text-slate-700 dark:text-slate-300">=</span>
-                          <span className="font-semibold text-slate-800 dark:text-slate-200">{question.answer}</span>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            {question.numbers?.map((num, numIndex) => (
+                              <div key={numIndex} className="h-8"></div>
+                            ))}
+                            <div className="h-6"></div>
+                            <button
+                              type="button"
+                              onClick={() => addMitoriTerm(index)}
+                              className="px-2 py-1 text-xs bg-emerald-500 hover:bg-emerald-600 text-white rounded whitespace-nowrap"
+                            >
+                              口の追加
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )}

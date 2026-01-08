@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { getPlanLimits, checkPresetLimit, getLimitErrorMessage } from '@/lib/plans'
-import { getProblemType, getDefaultParameters, getParameters } from '@/lib/problem-types'
+import { getProblemType, getDefaultParameters } from '@/lib/problem-types'
 
 export default function PresetEditPage() {
   const router = useRouter()
@@ -90,7 +90,19 @@ export default function PresetEditPage() {
       if (preset) {
         setName(preset.name)
         setType(preset.type)
-        setParameters(getParameters(preset) || getDefaultParameters(preset.type))
+        const hasParameters = preset.parameter1 !== null && preset.parameter1 !== undefined
+        setParameters(hasParameters ? {
+          parameter1: preset.parameter1,
+          parameter2: preset.parameter2,
+          parameter3: preset.parameter3,
+          parameter4: preset.parameter4,
+          parameter5: preset.parameter5,
+          parameter6: preset.parameter6,
+          parameter7: preset.parameter7,
+          parameter8: preset.parameter8,
+          parameter9: preset.parameter9,
+          parameter10: preset.parameter10,
+        } : getDefaultParameters(preset.type))
         setQuestionCount(preset.question_count)
       }
     } catch (error) {

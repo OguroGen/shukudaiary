@@ -14,7 +14,7 @@ import {
 import {
   generateMitoriQuestions,
 } from '@/lib/problems/mitori'
-import { getTypeName, getProblemType, getDefaultParameters, getParameters } from '@/lib/problem-types'
+import { getTypeName, getProblemType, getDefaultParameters } from '@/lib/problem-types'
 
 function HomeworkCreatePageContent() {
   const router = useRouter()
@@ -23,6 +23,7 @@ function HomeworkCreatePageContent() {
   const [presets, setPresets] = useState([])
   const [fixedQuestions, setFixedQuestions] = useState([])
   const [selectedStudent, setSelectedStudent] = useState('')
+  const [problemMode, setProblemMode] = useState('auto') // 'auto' or 'fixed'
   const [type, setType] = useState('mul')
   const [selectedPreset, setSelectedPreset] = useState('')
   const [selectedFixedQuestion, setSelectedFixedQuestion] = useState('')
@@ -39,6 +40,8 @@ function HomeworkCreatePageContent() {
   const [dueDateEnd, setDueDateEnd] = useState('')
   const [message, setMessage] = useState('')
   const [name, setName] = useState('')
+  const [feedbackMode, setFeedbackMode] = useState('all_at_once') // 'all_at_once' or 'immediate'
+  const [retryCount, setRetryCount] = useState(0)
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [previewQuestions, setPreviewQuestions] = useState([])
@@ -93,7 +96,19 @@ function HomeworkCreatePageContent() {
       if (preset) {
         setSelectedPreset(lastPresetId)
         setType(preset.type)
-        setParameters(getParameters(preset) || getDefaultParameters(preset.type))
+        const hasParameters = preset.parameter1 !== null && preset.parameter1 !== undefined
+        setParameters(hasParameters ? {
+          parameter1: preset.parameter1,
+          parameter2: preset.parameter2,
+          parameter3: preset.parameter3,
+          parameter4: preset.parameter4,
+          parameter5: preset.parameter5,
+          parameter6: preset.parameter6,
+          parameter7: preset.parameter7,
+          parameter8: preset.parameter8,
+          parameter9: preset.parameter9,
+          parameter10: preset.parameter10,
+        } : getDefaultParameters(preset.type))
         setQuestionCount(preset.question_count)
         // プリセット名を初期値として設定
         setName(preset.name)
@@ -159,13 +174,38 @@ function HomeworkCreatePageContent() {
     }
   }
 
+  const handleProblemModeChange = (mode) => {
+    setProblemMode(mode)
+    if (mode === 'auto') {
+      // 自動問題に切り替え時、固定問題をクリア
+      setSelectedFixedQuestion('')
+      setPreviewQuestions([])
+      setShowPreview(false)
+    } else {
+      // 固定問題に切り替え時、プリセットをクリア
+      setSelectedPreset('')
+    }
+  }
+
   const handlePresetChange = (presetId) => {
     setSelectedPreset(presetId)
     setSelectedFixedQuestion('') // 固定問題をクリア
     const preset = presets.find((p) => p.id === presetId)
     if (preset) {
       setType(preset.type)
-      setParameters(getParameters(preset) || getDefaultParameters(preset.type))
+      const hasParameters = preset.parameter1 !== null && preset.parameter1 !== undefined
+      setParameters(hasParameters ? {
+        parameter1: preset.parameter1,
+        parameter2: preset.parameter2,
+        parameter3: preset.parameter3,
+        parameter4: preset.parameter4,
+        parameter5: preset.parameter5,
+        parameter6: preset.parameter6,
+        parameter7: preset.parameter7,
+        parameter8: preset.parameter8,
+        parameter9: preset.parameter9,
+        parameter10: preset.parameter10,
+      } : getDefaultParameters(preset.type))
       setQuestionCount(preset.question_count)
       // プリセット名を初期値として設定
       setName(preset.name)
@@ -255,6 +295,8 @@ function HomeworkCreatePageContent() {
       due_date_end: dueDateEnd,
       message: message.trim() || null,
       name: name.trim() || null,
+      feedback_mode: feedbackMode,
+      retry_count: retryCount,
     }
 
     const validationErrors = validateHomeworkData(homeworkData)
@@ -476,70 +518,113 @@ function HomeworkCreatePageContent() {
             </div>
           </div>
 
-          {/* プリセット・固定問題セクション */}
-          {(presets.length > 0 || fixedQuestions.length > 0) && (
+          {/* 問題タイプ選択セクション */}
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 pb-2 border-b border-slate-200 dark:border-slate-700">
+              問題タイプ
+            </h2>
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={() => handleProblemModeChange('auto')}
+                className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md ${
+                  problemMode === 'auto'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                }`}
+              >
+                自動問題
+              </button>
+              <button
+                type="button"
+                onClick={() => handleProblemModeChange('fixed')}
+                className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md ${
+                  problemMode === 'fixed'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                }`}
+              >
+                固定問題
+              </button>
+            </div>
+          </div>
+
+          {/* 自動問題: プリセット・マニュアル選択セクション */}
+          {problemMode === 'auto' && presets.length > 0 && (
             <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
               <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 pb-2 border-b border-slate-200 dark:border-slate-700">
-                プリセット・固定問題（任意）
+                プリセット（任意）
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {presets.length > 0 && (
-                  <div>
-                    <label
-                      htmlFor="preset"
-                      className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
-                    >
-                      プリセット
-                    </label>
-                    <select
-                      id="preset"
-                      value={selectedPreset}
-                      onChange={(e) => handlePresetChange(e.target.value)}
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
-                    >
-                      <option value="">なし（手動入力）</option>
-                      {presets
-                        .filter((p) => p.type === type)
-                        .map((preset) => (
-                          <option key={preset.id} value={preset.id}>
-                            {preset.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                )}
-
-                {fixedQuestions.length > 0 && (
-                  <div>
-                    <label
-                      htmlFor="fixed_question"
-                      className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
-                    >
-                      固定問題
-                    </label>
-                    <select
-                      id="fixed_question"
-                      value={selectedFixedQuestion}
-                      onChange={(e) => handleFixedQuestionChange(e.target.value)}
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
-                    >
-                      <option value="">なし</option>
-                      {fixedQuestions
-                        .filter((fq) => fq.type === type)
-                        .map((fixedQuestion) => (
-                          <option key={fixedQuestion.id} value={fixedQuestion.id}>
-                            {fixedQuestion.name} ({fixedQuestion.questions.length}問)
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                )}
+              <div>
+                <label
+                  htmlFor="preset"
+                  className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+                >
+                  プリセット
+                </label>
+                <select
+                  id="preset"
+                  value={selectedPreset}
+                  onChange={(e) => handlePresetChange(e.target.value)}
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
+                >
+                  <option value="">マニュアル（手動入力）</option>
+                  {presets
+                    .filter((p) => p.type === type)
+                    .map((preset) => (
+                      <option key={preset.id} value={preset.id}>
+                        {preset.name}
+                      </option>
+                    ))}
+                </select>
               </div>
             </div>
           )}
 
-          {/* 問題設定セクション */}
-          {!selectedFixedQuestion && (() => {
+          {/* 固定問題: 固定問題選択セクション */}
+          {problemMode === 'fixed' && (
+            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 pb-2 border-b border-slate-200 dark:border-slate-700">
+                固定問題
+              </h2>
+              {fixedQuestions.length > 0 ? (
+                <div>
+                  <label
+                    htmlFor="fixed_question"
+                    className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+                  >
+                    固定問題を選択
+                  </label>
+                  <select
+                    id="fixed_question"
+                    value={selectedFixedQuestion}
+                    onChange={(e) => handleFixedQuestionChange(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
+                  >
+                    <option value="">固定問題を選択</option>
+                    {fixedQuestions
+                      .filter((fq) => fq.type === type)
+                      .map((fixedQuestion) => (
+                        <option key={fixedQuestion.id} value={fixedQuestion.id}>
+                          {fixedQuestion.name} ({fixedQuestion.questions.length}問)
+                        </option>
+                      ))}
+                  </select>
+                  {errors.fixed_question_id && (
+                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.fixed_question_id}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-300 rounded-lg">
+                  固定問題が登録されていません。固定問題を作成するには、固定問題管理ページから作成してください。
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 問題設定セクション（自動問題のみ） */}
+          {problemMode === 'auto' && !selectedFixedQuestion && (() => {
             const problemType = getProblemType(type)
             if (!problemType) return null
             
@@ -678,7 +763,69 @@ function HomeworkCreatePageContent() {
             </p>
           </div>
 
-          {!selectedFixedQuestion && (
+          {/* フィードバック設定セクション */}
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 pb-2 border-b border-slate-200 dark:border-slate-700">
+              フィードバック設定
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  正誤判定の表示方法
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="feedback_mode"
+                      value="all_at_once"
+                      checked={feedbackMode === 'all_at_once'}
+                      onChange={(e) => setFeedbackMode(e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className="text-slate-700 dark:text-slate-300">全問終了後に表示</span>
+                  </label>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="feedback_mode"
+                      value="immediate"
+                      checked={feedbackMode === 'immediate'}
+                      onChange={(e) => setFeedbackMode(e.target.value)}
+                      className="mr-2"
+                    />
+                    <span className="text-slate-700 dark:text-slate-300">一問ずつ表示</span>
+                  </label>
+                </div>
+              </div>
+              
+              <div>
+                <label
+                  htmlFor="retry_count"
+                  className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+                >
+                  間違った問題の繰り返し回数
+                </label>
+                <input
+                  id="retry_count"
+                  type="number"
+                  min="0"
+                  max="10"
+                  value={retryCount}
+                  onChange={(e) => setRetryCount(parseInt(e.target.value, 10) || 0)}
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-700 dark:text-slate-300"
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  0回の場合、間違った問題は結果のみ表示されます。1回以上の場合、結果ページで再度解くことができます。
+                </p>
+                {errors.retry_count && (
+                  <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.retry_count}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {problemMode === 'auto' && !selectedFixedQuestion && (
             <div className="flex gap-4">
               <button
                 type="button"

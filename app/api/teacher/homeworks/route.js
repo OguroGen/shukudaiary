@@ -133,6 +133,8 @@ export async function POST(request) {
         due_date_end: homeworkData.due_date_end,
         message: homeworkData.message || null,
         name: homeworkData.name || null,
+        feedback_mode: homeworkData.feedback_mode || 'all_at_once',
+        retry_count: homeworkData.retry_count || 0,
         questions: questions,
         status: 'not_started',
       })
